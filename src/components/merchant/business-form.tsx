@@ -154,56 +154,28 @@ export function BusinessForm({
     );
   }
 
-  const go = (next: number) => {
-    setStep(next);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-  const titles = ["Tell us about your business", "Where can customers find you?", "When are you open?", "Add some photos"];
-  const subtitles = [
-    "This is what customers see on your profile.",
-    "Used for distance, the map and directions.",
-    "Shown on your public profile.",
-    "Optional — you can add these later.",
-  ];
-
   return (
-    <div className="pb-28 sm:pb-0">
-      <p className="text-center text-sm font-semibold text-muted">
-        Step {step + 1} of {STEPS.length} · {STEPS[step]}
-      </p>
-      <ol className="mx-auto mt-3 mb-8 flex max-w-sm gap-1.5" aria-label="Progress">
+    <div>
+      <ol className="mb-8 flex gap-2" aria-label="Progress">
         {STEPS.map((s, i) => (
-          <li key={s} className="flex-1" aria-current={i === step ? "step" : undefined}>
-            <span className="sr-only">{s}</span>
+          <li key={s} className="flex-1">
             <div className={cn("h-1.5 rounded-full transition-colors", i <= step ? "bg-ink" : "bg-mist")} />
+            <p className={cn("mt-2 text-xs font-semibold", i === step ? "text-ink" : "text-muted")} aria-current={i === step ? "step" : undefined}>{s}</p>
           </li>
         ))}
       </ol>
-      <div className="mb-7 text-center">
-        <h2 className="text-[26px] leading-tight font-extrabold sm:text-3xl">{titles[step]}</h2>
-        <p className="mt-2 text-[15px] text-muted">{subtitles[step]}</p>
-      </div>
+      <h2 className="mb-5 text-2xl font-extrabold">{["Tell us about your business", "Where can customers find you?", "When are you open?", "Add some photos"][step]}</h2>
       {sections[step]}
       {error ? <p className="mt-5 rounded-xl bg-[#fde8e7] p-3 text-sm font-medium text-danger" role="alert">{error}</p> : null}
-
-      {/* Mobile: fixed full-width action bar. Larger screens: centered inline buttons. */}
-      <div className="pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 px-4 pt-3 backdrop-blur-lg sm:static sm:mt-10 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
-        <div className="mx-auto flex max-w-md gap-3 pb-3 sm:pb-0">
-          {step > 0 ? (
-            <Button type="button" variant="outline" size="lg" className="flex-1" onClick={() => go(step - 1)}>
-              <ArrowLeft /> Back
-            </Button>
-          ) : null}
-          {step < STEPS.length - 1 ? (
-            <Button type="button" size="lg" className="flex-[2]" disabled={!stepValid[step]} onClick={() => go(step + 1)}>
-              Continue <ArrowRight />
-            </Button>
-          ) : (
-            <Button type="button" size="lg" variant="lime" className="flex-[2]" disabled={pending} onClick={submit}>
-              {pending ? <Loader2 className="animate-spin" /> : null} Create business
-            </Button>
-          )}
-        </div>
+      <div className="mt-8 flex gap-3">
+        {step > 0 ? <Button type="button" variant="outline" size="lg" onClick={() => setStep(step - 1)}><ArrowLeft /> Back</Button> : null}
+        {step < STEPS.length - 1 ? (
+          <Button type="button" size="lg" className="ml-auto" disabled={!stepValid[step]} onClick={() => setStep(step + 1)}>Continue <ArrowRight /></Button>
+        ) : (
+          <Button type="button" size="lg" variant="lime" className="ml-auto" disabled={pending} onClick={submit}>
+            {pending ? <Loader2 className="animate-spin" /> : null} Create business
+          </Button>
+        )}
       </div>
     </div>
   );

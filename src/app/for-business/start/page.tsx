@@ -14,13 +14,14 @@ export default async function StartPage() {
   if (viewer.memberships.some((m) => m.role === "owner")) redirect("/dashboard");
   const areas = await listLaunchAreas(await getDb());
   return (
-    <div className="min-h-dvh bg-white sm:bg-paper">
-      <header className="mx-auto flex h-16 max-w-2xl items-center justify-center px-4 sm:justify-start"><Logo suffix="for Business" /></header>
-      <main className="mx-auto max-w-2xl px-5 pt-2 pb-16 sm:px-4">
-        <div className="sm:rounded-[28px] sm:bg-white sm:p-10 sm:shadow-[var(--shadow-soft)]">
+    <div className="min-h-dvh bg-paper">
+      <header className="mx-auto flex h-16 max-w-2xl items-center px-4"><Logo suffix="for Business" /></header>
+      <main className="mx-auto max-w-2xl px-4 pb-16">
+        <div className="rounded-[28px] bg-white p-6 shadow-[var(--shadow-soft)] sm:p-10">
+          <p className="text-sm font-semibold text-muted">Step-by-step · about 3 minutes</p>
           <BusinessForm mode="onboarding" initial={{ ...EMPTY_BUSINESS, contact_email: viewer.email }} areas={areas} />
         </div>
-        <p className="mt-6 hidden text-center text-sm text-muted sm:block">Next: activate your $29/month plan to start publishing deals. You can save drafts before subscribing.</p>
+        <p className="mt-6 text-center text-sm text-muted">Next: activate your $29/month plan to start publishing deals. You can save drafts before subscribing.</p>
       </main>
     </div>
   );
