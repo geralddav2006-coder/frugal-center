@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Bell, CalendarClock, Clock, Heart, MapPin, Sparkles, Store, Zap } from "lucide-react";
+import { Bell, CalendarClock, Check, Clock, Heart, Map, MapPin, Sparkles, Store, Zap } from "lucide-react";
 import { getViewer } from "@/server/auth";
 import { getDb } from "@/server/db";
 import { getViewerLocation } from "@/server/location";
-import { getHomeSections, type DealCard as Deal } from "@/server/services/discovery";
+import { getHomeSections, nearbyStats, type DealCard as Deal } from "@/server/services/discovery";
 import { scheduleDueDispatch } from "@/server/sweep";
-import { CATEGORIES } from "@/lib/deals";
+import { CATEGORIES, priceDisplay } from "@/lib/deals";
+import { formatDistance } from "@/lib/utils";
+import { SmartImage } from "@/components/smart-image";
 import { DealCard } from "@/components/deals/deal-card";
 import { DealRail } from "@/components/deals/deal-rail";
 import { CategoryBar } from "@/components/deals/category-bar";
@@ -22,8 +24,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const viewer = await getViewer();
   const loc = await getViewerLocation(viewer);
   const db = await getDb();
-  const s = await getHomeSections(db, { lat: loc.lat, lng: loc.lng, radiusMiles: loc.radius }, viewer?.id ?? null, category);
+  const [s, stats] = await Promise.all([
+    getHomeSections(db, { lat: loc.lat, lng: loc.lng, radiusMiles: loc.radius }, viewer?.id ?? null, category),
+    nearbyStats(db, loc, loc.radius, category),
+  ]);
   scheduleDueDispatch();
+  const livePicks = (s.endingSoon.length >= 3 ? s.endingSoon : s.nearYou).slice(0, 3);
 
   const signedIn = !!viewer;
   const rail = (deals: Deal[], priority = false) =>
@@ -39,18 +45,79 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <Suspense>
         <FlashToast param="welcome" message="Welcome to Frugal Center! Start exploring deals near you." />
       </Suspense>
-      <section className="bg-[linear-gradient(180deg,#fafaf7_0%,#ffffff_100%)]">
-        <div className="mx-auto max-w-7xl px-4 pt-8 pb-4 sm:px-6 sm:pt-14 lg:px-8">
-          <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold shadow-[var(--shadow-soft)]">
-            <MapPin className="size-3.5" aria-hidden /> {loc.label} · within {loc.radius} mi
-          </p>
-          <h1 className="max-w-3xl text-[33px] leading-[1.05] font-extrabold tracking-[-0.02em] sm:text-6xl lg:text-7xl">
-            Good deals, <span className="marker">close to home.</span>
+      <section className="bg-paper">
+        <div className="mx-auto max-w-7xl px-5 pt-6 pb-5 sm:px-6 sm:pt-14 sm:pb-6 lg:grid lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] lg:items-center lg:gap-12 lg:px-8">
+          <div className="min-w-0">
+          <Link
+            href="/explore"
+            className="inline-flex max-w-full items-center gap-2 rounded-full border border-line bg-white py-1.5 pr-3.5 pl-2.5 text-[13px] font-semibold shadow-[var(--shadow-soft)] transition hover:border-ink"
+          >
+            <span className="relative flex size-2.5 shrink-0" aria-hidden>
+              {stats.count ? <span className="absolute inline-flex size-full animate-ping rounded-full bg-lime opacity-75" /> : null}
+              <span className="relative inline-flex size-2.5 rounded-full bg-lime" />
+            </span>
+            <span className="truncate">
+              {stats.count
+                ? `${stats.count} ${stats.count === 1 ? "deal" : "deals"} live near ${loc.label}`
+                : `New deals coming to ${loc.label}`}
+            </span>
+          </Link>
+          <h1 className="mt-4 text-[34px] leading-[1.04] font-extrabold tracking-[-0.02em] min-[400px]:text-[37px] sm:mt-5 sm:text-6xl lg:text-[76px]">
+            Good deals,
+            <br />
+            <span className="text-lime-ink">close to home.</span>
           </h1>
-          <p className="mt-4 max-w-xl text-[17px] text-muted sm:text-lg">Discover exclusive discounts from local businesses.</p>
+          <p className="mt-3 max-w-[36ch] text-[16px] leading-relaxed text-muted sm:mt-4 sm:max-w-xl sm:text-lg">
+            Leftover bakes, last-minute appointments and quiet-hour specials from local spots. Free to claim, pay in store.
+          </p>
           <Suspense>
-            <SearchBox size="hero" className="mt-7 max-w-2xl" />
+            <SearchBox size="hero" className="mt-5 max-w-2xl sm:mt-7" />
           </Suspense>
+          <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 text-[13px] font-semibold text-ink/70" aria-label="Why Frugal Center">
+            {["Free to claim", stats.maxPct >= 10 ? `Up to ${stats.maxPct}% off` : "Exclusive local discounts", "Pay in store"].map((t) => (
+              <li key={t} className="flex items-center gap-1.5">
+                <Check className="size-4 text-lime-ink" strokeWidth={2.75} aria-hidden /> {t}
+              </li>
+            ))}
+          </ul>
+          </div>
+          {livePicks.length ? (
+            <aside className="hidden rounded-[26px] border border-line bg-white p-5 shadow-[var(--shadow-soft)] lg:block" aria-label="Live right now">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="flex items-center gap-2 text-sm font-bold">
+                  <span className="relative flex size-2.5" aria-hidden>
+                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-lime opacity-75" />
+                    <span className="relative inline-flex size-2.5 rounded-full bg-lime" />
+                  </span>
+                  Live right now
+                </p>
+                <Link href={explore({ sort: "ending" })} className="text-sm font-bold text-lime-ink hover:underline">See all</Link>
+              </div>
+              <ul className="grid gap-2">
+                {livePicks.map((d) => {
+                  const p = priceDisplay(d);
+                  return (
+                    <li key={d.id}>
+                      <Link href={`/deals/${d.id}`} className="flex items-center gap-3 rounded-2xl p-2 transition hover:bg-paper">
+                        <div className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-mist">
+                          <SmartImage src={d.images[0] ?? d.business_cover} alt="" sizes="64px" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs font-semibold text-muted">{d.business_name}{formatDistance(d.distance_miles) ? ` · ${formatDistance(d.distance_miles)}` : ""}</p>
+                          <p className="truncate font-bold">{d.title}</p>
+                          <p className="text-sm">
+                            <span className="font-extrabold">{p.headline}</span>{" "}
+                            {p.original ? <span className="text-muted line-through">{p.original}</span> : null}
+                          </p>
+                        </div>
+                        <span className="shrink-0 rounded-full bg-lime px-2.5 py-1 text-[11px] font-extrabold">{p.badge}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </aside>
+          ) : null}
         </div>
         <div className="mx-auto flex max-w-7xl items-end justify-between gap-4 px-2 sm:px-4 lg:px-6">
           <CategoryBar basePath="/" params={{}} active={category ?? "all"} className="min-w-0 flex-1" />
@@ -60,9 +127,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       </section>
 
       <div className="mx-auto max-w-7xl pt-2">
-        <div className="flex justify-end px-4 pt-3 sm:hidden">
-          <ViewToggle view="list" listHref="/" mapHref={explore({ view: "map" })} />
-        </div>
+        <Link
+          href={explore({ view: "map" })}
+          className="fixed bottom-[calc(84px+env(safe-area-inset-bottom))] left-1/2 z-30 inline-flex h-11 -translate-x-1/2 items-center gap-2 rounded-full bg-ink px-5 text-[15px] font-bold text-white shadow-[var(--shadow-lift)] active:scale-95 sm:hidden"
+        >
+          <Map className="size-4 text-lime" aria-hidden /> Map
+        </Link>
 
         {nothingNearby ? (
           <div className="px-4 py-8 sm:px-6 lg:px-8">

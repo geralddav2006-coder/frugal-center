@@ -21,7 +21,7 @@ export function SearchBox({ size = "default", className, autoFocus }: { size?: "
         router.push(`/explore?${next.toString()}`);
       }}
     >
-      <Search className={cn("pointer-events-none absolute text-muted", hero ? "left-5 size-5" : "left-4 size-4")} aria-hidden />
+      <Search className={cn("pointer-events-none absolute text-muted", hero ? "left-4 size-5 sm:left-5" : "left-4 size-4")} aria-hidden />
       <label htmlFor={`search-${size}`} className="sr-only">Search deals, businesses, services</label>
       <input
         id={`search-${size}`}
@@ -32,11 +32,11 @@ export function SearchBox({ size = "default", className, autoFocus }: { size?: "
         placeholder="Search deals, businesses, services..."
         className={cn(
           "w-full rounded-full border border-line bg-white text-ink placeholder:text-muted/80 outline-none transition focus:border-ink focus:shadow-[var(--shadow-soft)]",
-          hero ? "h-16 pr-[4.5rem] pl-13 text-base shadow-[var(--shadow-soft)] sm:text-[17px]" : "h-11 pr-4 pl-11 text-[15px]",
+          hero ? "h-14 pr-16 pl-12 text-base shadow-[var(--shadow-soft)] sm:h-16 sm:pr-[4.5rem] sm:pl-13 sm:text-[17px]" : "h-11 pr-4 pl-11 text-[15px]",
         )}
       />
       {hero ? (
-        <button type="submit" aria-label="Search" className="absolute right-2 grid size-12 place-items-center rounded-full bg-ink text-lime transition hover:bg-ink-soft active:scale-95">
+        <button type="submit" aria-label="Search" className="absolute right-1.5 grid size-11 place-items-center rounded-full bg-ink text-lime transition hover:bg-ink-soft active:scale-95 sm:right-2 sm:size-12">
           <Search className="size-5" strokeWidth={2.5} />
         </button>
       ) : null}

@@ -357,3 +357,19 @@ export async function listLaunchAreas(db: Queryable) {
     `select zip, neighborhood, city, state, lat, lng from public.launch_areas order by neighborhood`,
   );
 }
+
+/** Live deal count and best discount within the viewer's radius (for the hero). */
+export async function nearbyStats(db: Queryable, loc: GeoPoint, radiusMiles: number, category?: string) {
+  const [r] = await db.query<{ n: number; max_pct: number }>(
+    `select count(*)::int as n,
+       coalesce(max(case
+         when d.discount_kind = 'fixed_price' then round((d.original_price_cents - d.deal_price_cents)::numeric / d.original_price_cents * 100)
+         when d.discount_kind = 'percent' then d.percent_off end), 0)::int as max_pct
+     from public.deals d join public.businesses b on b.id = d.business_id
+     where ${LIVE_DEAL_SQL}
+       and public.distance_miles($1, $2, b.lat, b.lng) <= $3
+       and ($4::text is null or b.category_slug = $4)`,
+    [loc.lat, loc.lng, radiusMiles, category ?? null],
+  );
+  return { count: r?.n ?? 0, maxPct: r?.max_pct ?? 0 };
+}

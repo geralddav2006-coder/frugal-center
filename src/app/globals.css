@@ -97,11 +97,6 @@
     background-size: 800px 100%;
     animation: var(--animate-shimmer);
   }
-  /* Lime marker underline for one emphasized phrase per heading */
-  .marker {
-    background-image: linear-gradient(transparent 62%, var(--color-lime) 62%, var(--color-lime) 92%, transparent 92%);
-    padding: 0 0.08em;
-  }
 }
 
 /* Leaflet price pins */

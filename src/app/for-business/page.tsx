@@ -57,7 +57,7 @@ export default async function ForBusinessPage() {
               <Sparkles className="size-3.5" aria-hidden /> $29/month · zero commissions
             </p>
             <h1 className="mt-5 text-[42px] leading-[1.02] font-extrabold tracking-[-0.02em] sm:text-6xl">
-              Turn empty time slots and unsold inventory into <span className="marker">revenue.</span>
+              Turn empty time slots and unsold inventory into <span className="text-lime-ink">revenue.</span>
             </h1>
             <p className="mt-5 max-w-xl text-lg text-muted">
               Fill cancellations, sell surplus inventory, and bring customers through your door with exclusive local deals.
