@@ -77,6 +77,36 @@ describe("discovery", () => {
     expect(sections.nearYou.length).toBeGreaterThan(0);
   });
 
+  it("lets businesses post Frugal Center exclusives and filters them into their own section", async () => {
+    const seeded = await listLiveDeals(db, AUSTIN, { exclusive: true, radiusMiles: 25 }, null);
+    expect(seeded.length).toBeGreaterThan(0);
+    expect(seeded.every((d) => d.is_exclusive)).toBe(true);
+
+    const { id } = await saveDeal(db, ids.owner!, bakery, {
+      type: "surplus", title: "App-only cinnamon rolls", images: [], original_price: "12", deal_price: "5",
+      quantity_total: 4, starts_at: local(-1), ends_at: local(5), per_customer_limit: 1, is_exclusive: true,
+    });
+    await publishDeal(db, ids.owner!, id);
+    const exclusives = await listLiveDeals(db, AUSTIN, { exclusive: true, radiusMiles: 25 }, null);
+    expect(exclusives.map((d) => d.id)).toContain(id);
+    const sections = await getHomeSections(db, { ...AUSTIN, radiusMiles: 25 }, null);
+    expect(sections.exclusives.map((d) => d.id)).toContain(id);
+    expect(sections.exclusives.every((d) => d.is_exclusive)).toBe(true);
+
+    // Duplicates keep the flag; turning it off removes the deal from the section.
+    const copy = await duplicateDeal(db, ids.owner!, id);
+    const [dup] = await db.query<{ is_exclusive: boolean }>(`select is_exclusive from public.deals where id = $1`, [copy.id]);
+    expect(dup!.is_exclusive).toBe(true);
+    await saveDeal(db, ids.owner!, bakery, {
+      type: "surplus", title: "App-only cinnamon rolls", images: [], original_price: "12", deal_price: "5",
+      quantity_total: 4, starts_at: local(-1), ends_at: local(5), per_customer_limit: 1, is_exclusive: false,
+    }, id);
+    const after = await listLiveDeals(db, AUSTIN, { exclusive: true, radiusMiles: 25 }, null);
+    expect(after.map((d) => d.id)).not.toContain(id);
+    const detail = await getDealDetail(db, id, AUSTIN, null);
+    expect(detail!.is_exclusive).toBe(false);
+  });
+
   it("hides drafts from the public but shows them to the business", async () => {
     const { id } = await saveDeal(db, ids.owner!, bakery, {
       type: "surplus", title: "Secret draft", images: [], original_price: 10, deal_price: 5, quantity_total: 2,

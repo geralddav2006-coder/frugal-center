@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertCircle, CalendarClock, ChevronLeft, Clock, Info, MapPin, Navigation, Package, ShieldCheck, Store } from "lucide-react";
+import { AlertCircle, CalendarClock, ChevronLeft, Clock, Gem, Info, MapPin, Navigation, Package, ShieldCheck, Store } from "lucide-react";
 import { getViewer } from "@/server/auth";
 import { getDb } from "@/server/db";
 import { getViewerLocation } from "@/server/location";
@@ -93,6 +93,7 @@ export default async function DealPage({ params }: Props) {
         <article className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="lime">{price.badge}</Badge>
+            {d.is_exclusive ? <Badge variant="ink"><Gem className="text-lime" aria-hidden /> Frugal Center exclusive</Badge> : null}
             <Badge variant="soft"><TypeIcon aria-hidden /> {meta.label}</Badge>
             <Badge variant="outline">{categoryName(d.category_slug)}</Badge>
           </div>
@@ -108,6 +109,13 @@ export default async function DealPage({ params }: Props) {
               </p>
             </div>
           </Link>
+
+          {d.is_exclusive ? (
+            <p className="mt-5 flex items-start gap-2.5 rounded-2xl bg-ink p-4 text-[14px] leading-snug text-white/80">
+              <Gem className="mt-0.5 size-4 shrink-0 text-lime" aria-hidden />
+              <span><strong className="text-white">Only on Frugal Center.</strong> {d.business_name} offers this deal exclusively through Frugal Center, so you won&apos;t find it on other apps or at the counter.</span>
+            </p>
+          ) : null}
 
           {/* Type-specific availability */}
           <section className="mt-6 rounded-[var(--radius-card)] border border-line bg-paper p-5" aria-label="Availability">

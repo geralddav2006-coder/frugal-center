@@ -21,7 +21,7 @@ export function newEditorValue(type: DealType | null, tz: string): EditorValue {
   const isSlow = type === "slow_hours";
   return {
     type,
-    title: "", description: "", images: [], redemption_instructions: "", restrictions: "", per_customer_limit: 1,
+    title: "", description: "", images: [], redemption_instructions: "", restrictions: "", per_customer_limit: 1, is_exclusive: false,
     original_price: "", deal_price: "", quantity_total: type === "surplus" ? "10" : "",
     starts_at: dateToZonedInput(flooredNow(), tz),
     ends_at: dateToZonedInput(roundedNow(isSlow ? 24 * 14 : 4), tz),
@@ -35,7 +35,7 @@ export function editorValueFromDeal(d: MerchantDeal & { slots: { id: string; sta
   return {
     type: d.type as DealType,
     title: d.title, description: d.description ?? "", images: d.images,
-    redemption_instructions: d.redemption_instructions ?? "", restrictions: d.restrictions ?? "", per_customer_limit: d.per_customer_limit,
+    redemption_instructions: d.redemption_instructions ?? "", restrictions: d.restrictions ?? "", per_customer_limit: d.per_customer_limit, is_exclusive: d.is_exclusive,
     original_price: dollars(d.original_price_cents), deal_price: dollars(d.deal_price_cents),
     quantity_total: d.quantity_total == null ? "" : String(d.quantity_total),
     starts_at: dateToZonedInput(d.starts_at, tz), ends_at: dateToZonedInput(d.ends_at, tz),

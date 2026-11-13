@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  BarChart3, Bell, CalendarClock, Check, Clock, Infinity as InfinityIcon, MapPin, Package, Percent, QrCode, Smartphone, Sparkles,
+  BarChart3, Bell, CalendarClock, Check, Clock, Gem, Infinity as InfinityIcon, MapPin, Package, Percent, QrCode, Smartphone, Sparkles,
 } from "lucide-react";
 import { Logo } from "@/components/brand";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ const BENEFITS = [
   { icon: Percent, title: "No sales commissions", body: "Customers pay you directly. You keep 100% of every sale." },
   { icon: MapPin, title: "Reach nearby customers", body: "Your deals show up for people within minutes of your door." },
   { icon: Bell, title: "Notify your followers", body: "Followers get an alert the moment you publish a new deal." },
+  { icon: Gem, title: "Feature exclusives", body: "Mark a deal Frugal Center exclusive to earn a badge and a spot in the Exclusives section." },
   { icon: QrCode, title: "QR and code redemption", body: "Scan with your phone camera or type the code. Secure and instant." },
   { icon: BarChart3, title: "Performance analytics", body: "See claims, redemptions and confirmed revenue for every offer." },
   { icon: Smartphone, title: "No special hardware", body: "Runs in the browser on the phone or tablet you already have." },

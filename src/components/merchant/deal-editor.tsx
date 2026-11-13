@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarClock, Clock, Eye, Loader2, Lock, Package, Plus, Send, Trash2 } from "lucide-react";
+import { CalendarClock, Clock, Eye, Gem, Loader2, Lock, Package, Plus, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { saveDealAction } from "@/app/actions/merchant";
 import { DEAL_TYPE_META, type DealType, type DiscountKind } from "@/lib/deals";
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input, NativeSelect, Textarea } from "@/components/ui/input";
 import { Field } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import { MultiImageUpload } from "./image-upload";
 
 export interface EditorValue {
@@ -24,6 +25,7 @@ export interface EditorValue {
   redemption_instructions: string;
   restrictions: string;
   per_customer_limit: number;
+  is_exclusive: boolean;
   original_price: string;
   deal_price: string;
   quantity_total: string;
@@ -106,6 +108,7 @@ export function DealEditor({
       redemption_instructions: v.redemption_instructions || undefined,
       restrictions: v.restrictions || undefined,
       per_customer_limit: v.per_customer_limit,
+      is_exclusive: v.is_exclusive,
     };
     if (v.type === "surplus") {
       return { type: "surplus" as const, ...common, original_price: v.original_price, deal_price: v.deal_price, quantity_total: Number(v.quantity_total), starts_at: v.starts_at, ends_at: v.ends_at };
@@ -284,6 +287,21 @@ export function DealEditor({
           {v.type === "surplus" ? <Field label="Other restrictions" htmlFor="d-restr2"><Textarea id="d-restr2" rows={2} value={v.restrictions} onChange={(e) => set("restrictions", e.target.value)} placeholder="Contents vary. May contain nuts." /></Field> : null}
         </Card>
 
+        <section className={cn("rounded-[var(--radius-card)] border p-5 transition-colors sm:p-6", v.is_exclusive ? "border-ink bg-ink text-white" : "border-line bg-white")}>
+          <div className="flex items-start gap-4">
+            <span className={cn("grid size-11 shrink-0 place-items-center rounded-2xl", v.is_exclusive ? "bg-lime text-ink" : "bg-lime-soft text-lime-ink")}>
+              <Gem className="size-5" aria-hidden />
+            </span>
+            <div className="min-w-0 flex-1">
+              <label htmlFor="d-exclusive" className="block cursor-pointer text-lg font-extrabold">Make it a Frugal Center exclusive</label>
+              <p className={cn("mt-1 text-sm", v.is_exclusive ? "text-white/75" : "text-muted")}>
+                Only offer this deal through Frugal Center. Exclusives get an &ldquo;Exclusive&rdquo; badge and appear in the Exclusives section customers browse.
+              </p>
+            </div>
+            <Switch id="d-exclusive" checked={v.is_exclusive} onCheckedChange={(on) => set("is_exclusive", on)} className={v.is_exclusive ? "data-[state=checked]:bg-white/20" : undefined} />
+          </div>
+        </section>
+
         {error ? <p className="rounded-xl bg-[#fde8e7] p-3 text-sm font-medium text-danger" role="alert">{error}</p> : null}
 
         <div className="sticky bottom-20 z-10 flex flex-wrap gap-2 rounded-2xl border border-line bg-white/95 p-3 shadow-[var(--shadow-lift)] backdrop-blur lg:bottom-4">
@@ -364,6 +382,7 @@ function previewDeal(v: EditorValue, businessName: string, cover: string | null,
     duration_minutes: Number(v.duration_minutes) || 60, recurring_days: v.recurring_days, window_start: v.window_start, window_end: v.window_end,
     business_id: "preview", business_name: businessName, business_slug: "", business_logo: null, business_cover: cover, category_slug: "food-drink",
     lat: 0, lng: 0, timezone, distance_miles: 0.6, next_slot_at: slot, slots_remaining: v.slots.reduce((n, s) => n + (Number(s.capacity) || 0), 0), is_favorite: false,
+    is_exclusive: v.is_exclusive,
   };
   return { card, badge };
 }

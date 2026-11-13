@@ -52,6 +52,7 @@ type SeedDeal = {
   instructions?: string;
   restrictions?: string;
   status?: "draft" | "published" | "paused" | "ended";
+  exclusive?: boolean; // Frugal Center exclusive
 };
 
 type SeedBusiness = {
@@ -92,7 +93,7 @@ const BUSINESSES: SeedBusiness[] = [
     description: "Small-batch roaster and café on East 6th. Quiet afternoons, loud espresso machine.",
     cover: img("1501339847302-ac426a4a7cbb"), hours: weekdays("07:00", "19:00", H("08:00", "19:00"), H("08:00", "17:00")),
     deals: [
-      { key: "latte", type: "slow_hours", kind: "fixed_price", title: "Afternoon latte happy hour", description: "Any 12 oz latte or cortado for $3 during our quiet afternoon stretch. Oat and almond milk included.", images: [img("1509042239860-f550ce710b93"), img("1495474472287-4d71bcdd2085")], orig: 550, price: 300, startsH: -48, endsH: 24 * 20, publishedH: 48, days: [1, 2, 3, 4, 5], window: ["14:00", "17:00"], instructions: "Show your voucher when you order.", restrictions: "One drink per voucher. Dine-in or to-go." },
+      { key: "latte", exclusive: true, type: "slow_hours", kind: "fixed_price", title: "Afternoon latte happy hour", description: "Any 12 oz latte or cortado for $3 during our quiet afternoon stretch. Oat and almond milk included.", images: [img("1509042239860-f550ce710b93"), img("1495474472287-4d71bcdd2085")], orig: 550, price: 300, startsH: -48, endsH: 24 * 20, publishedH: 48, days: [1, 2, 3, 4, 5], window: ["14:00", "17:00"], instructions: "Show your voucher when you order.", restrictions: "One drink per voucher. Dine-in or to-go." },
     ],
   },
   {
@@ -119,7 +120,7 @@ const BUSINESSES: SeedBusiness[] = [
     description: "Fresh poke and rice bowls built to order across from campus.",
     cover: img("1546069901-ba9599a7e63c"), hours: weekdays("11:00", "21:00", H("11:00", "21:00"), H("12:00", "20:00")),
     deals: [
-      { key: "poke", type: "surplus", title: "Poke bowl rescue", description: "Chef's-choice regular poke bowl made with today's remaining fish and toppings.", images: [img("1546069901-ba9599a7e63c"), img("1512621776951-a57141f2eefd")], orig: 1500, price: 700, qty: 10, claimed: 3, startsH: -5, endsH: 9, publishedH: 5, instructions: "Show your voucher at the pickup counter after 7 PM." },
+      { key: "poke", exclusive: true, type: "surplus", title: "Poke bowl rescue", description: "Chef's-choice regular poke bowl made with today's remaining fish and toppings.", images: [img("1546069901-ba9599a7e63c"), img("1512621776951-a57141f2eefd")], orig: 1500, price: 700, qty: 10, claimed: 3, startsH: -5, endsH: 9, publishedH: 5, instructions: "Show your voucher at the pickup counter after 7 PM." },
       { key: "dinner", type: "slow_hours", kind: "amount_off", off: 1000, title: "$10 off dinner for two", description: "Take $10 off a dinner order of $30 or more on our slowest nights.", images: [img("1512621776951-a57141f2eefd")], startsH: -10, endsH: 24 * 25, publishedH: 10, days: [2, 3], window: ["17:00", "21:00"], instructions: "Show your voucher before paying.", restrictions: "Minimum $30 food purchase. Dine-in only." },
     ],
   },
@@ -129,7 +130,7 @@ const BUSINESSES: SeedBusiness[] = [
     description: "Clean, calm and precise. Gel, BIAB and classic manicures in Clarksville.",
     cover: img("1604654894610-df63bc536371"), hours: weekdays("10:00", "19:00", H("09:00", "18:00")),
     deals: [
-      { key: "gel", type: "appointment", title: "Gel manicure — canceled slot", description: "A client canceled, so this gel manicure is yours for much less. Includes shaping, cuticle care and your choice of color.", images: [img("1604654894610-df63bc536371"), img("1519014816548-bf5fe059798b")], orig: 4500, price: 2500, duration: 45, startsH: -2, publishedH: 2, slotsH: [{ d: 0, t: "16:30", cap: 1 }, { d: 1, t: "11:00", cap: 1 }, { d: 1, t: "15:30", cap: 1, taken: 1 }], instructions: "Arrive 5 minutes early and show your voucher at the front desk.", restrictions: "Removal of existing gel is $10 extra. 24-hour cancellation policy applies." },
+      { key: "gel", exclusive: true, type: "appointment", title: "Gel manicure — canceled slot", description: "A client canceled, so this gel manicure is yours for much less. Includes shaping, cuticle care and your choice of color.", images: [img("1604654894610-df63bc536371"), img("1519014816548-bf5fe059798b")], orig: 4500, price: 2500, duration: 45, startsH: -2, publishedH: 2, slotsH: [{ d: 0, t: "16:30", cap: 1 }, { d: 1, t: "11:00", cap: 1 }, { d: 1, t: "15:30", cap: 1, taken: 1 }], instructions: "Arrive 5 minutes early and show your voucher at the front desk.", restrictions: "Removal of existing gel is $10 extra. 24-hour cancellation policy applies." },
     ],
   },
   {
@@ -183,7 +184,7 @@ const BUSINESSES: SeedBusiness[] = [
     description: "Independent clothing boutique featuring Texas-made basics and small-batch designers.",
     cover: img("1441986300917-64674bd600d8"), hours: weekdays("11:00", "19:00", H("10:00", "20:00"), H("11:00", "18:00")),
     deals: [
-      { key: "tees", type: "surplus", title: "Sample sale organic tees", description: "Overstock and sample organic cotton tees in assorted colors, sizes XS–XL while they last.", images: [img("1556905055-8f358a7a47b2"), img("1441986300917-64674bd600d8")], orig: 3200, price: 1200, qty: 20, claimed: 7, startsH: -30, endsH: 48, publishedH: 30, instructions: "Show your voucher at the register." },
+      { key: "tees", exclusive: true, type: "surplus", title: "Sample sale organic tees", description: "Overstock and sample organic cotton tees in assorted colors, sizes XS–XL while they last.", images: [img("1556905055-8f358a7a47b2"), img("1441986300917-64674bd600d8")], orig: 3200, price: 1200, qty: 20, claimed: 7, startsH: -30, endsH: 48, publishedH: 30, instructions: "Show your voucher at the register." },
     ],
   },
   {
@@ -192,7 +193,7 @@ const BUSINESSES: SeedBusiness[] = [
     description: "Beginner-friendly pottery classes, open studio time and date nights on the wheel.",
     cover: img("1565193566173-7a0ee3dbe261"), hours: weekdays("12:00", "21:00", H("10:00", "21:00"), H("10:00", "18:00")),
     deals: [
-      { key: "wheel", type: "appointment", title: "Intro to the wheel — 2 open seats", description: "Two seats opened up in our 2-hour beginner class. Clay, glazing and firing included.", images: [img("1565193566173-7a0ee3dbe261")], orig: 6500, price: 3500, duration: 120, startsH: -8, publishedH: 8, slotsH: [{ d: 1, t: "18:30", cap: 2 }], instructions: "Arrive 10 minutes early and wear clothes that can get messy." },
+      { key: "wheel", exclusive: true, type: "appointment", title: "Intro to the wheel — 2 open seats", description: "Two seats opened up in our 2-hour beginner class. Clay, glazing and firing included.", images: [img("1565193566173-7a0ee3dbe261")], orig: 6500, price: 3500, duration: 120, startsH: -8, publishedH: 8, slotsH: [{ d: 1, t: "18:30", cap: 2 }], instructions: "Arrive 10 minutes early and wear clothes that can get messy." },
     ],
   },
   {
@@ -219,7 +220,7 @@ const BUSINESSES: SeedBusiness[] = [
     description: "Hand wash, interior detailing and ceramic coatings by a crew that sweats the details.",
     cover: img("1607860108855-64acf2078ed9"), hours: weekdays("08:00", "18:00", H("08:00", "17:00")),
     deals: [
-      { key: "detail", type: "slow_hours", kind: "fixed_price", title: "Full interior detail, Tue–Thu mornings", description: "Vacuum, steam clean, leather conditioning and glass. Our mornings mid-week are wide open.", images: [img("1607860108855-64acf2078ed9")], orig: 12900, price: 7900, qty: 15, claimed: 2, startsH: -40, endsH: 24 * 18, publishedH: 40, days: [2, 3, 4], window: ["08:00", "12:00"], instructions: "Show your voucher at drop-off." },
+      { key: "detail", exclusive: true, type: "slow_hours", kind: "fixed_price", title: "Full interior detail, Tue–Thu mornings", description: "Vacuum, steam clean, leather conditioning and glass. Our mornings mid-week are wide open.", images: [img("1607860108855-64acf2078ed9")], orig: 12900, price: 7900, qty: 15, claimed: 2, startsH: -40, endsH: 24 * 18, publishedH: 40, days: [2, 3, 4], window: ["08:00", "12:00"], instructions: "Show your voucher at drop-off." },
     ],
   },
   {
@@ -303,14 +304,14 @@ export async function seedDemoData(db: Db, createUser: CreateUser) {
       const [deal] = await db.query<{ id: string }>(
         `insert into public.deals (business_id, type, status, title, description, images, discount_kind, original_price_cents,
            deal_price_cents, percent_off, amount_off_cents, quantity_total, claimed_count, starts_at, ends_at, published_at,
-           followers_notified_at, redemption_instructions, restrictions, duration_minutes, recurring_days, window_start, window_end, created_by)
+           followers_notified_at, redemption_instructions, restrictions, duration_minutes, recurring_days, window_start, window_end, created_by, is_exclusive)
          values ($1, $2::public.deal_type, 'published', $3, $4, $5::text[], $6::public.discount_kind, $7, $8, $9, $10, $11, 0,
-           $12::timestamptz, $13::timestamptz, $14::timestamptz, $14::timestamptz, $15, $16, $17, $18::int[], $19::time, $20::time, $21) returning id`,
+           $12::timestamptz, $13::timestamptz, $14::timestamptz, $14::timestamptz, $15, $16, $17, $18::int[], $19::time, $20::time, $21, $22) returning id`,
         [bid, d.type, d.title, d.description, d.images, kind, kind === "fixed_price" ? d.orig : null,
           kind === "fixed_price" ? d.price : null, d.pct ?? null, d.off ?? null,
           d.type === "appointment" ? null : (d.qty ?? null), at(d.startsH ?? -1), at(endsH), at(-(d.publishedH ?? 1)),
           d.instructions ?? null, d.restrictions ?? null, d.duration ?? null, d.days ?? null, d.window?.[0] ?? null,
-          d.window?.[1] ?? null, owner],
+          d.window?.[1] ?? null, owner, d.exclusive ?? false],
       );
       dealIds[`${b.slug}/${d.key}`] = deal!.id;
       for (const s of slots) {

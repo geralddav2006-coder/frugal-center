@@ -4,6 +4,7 @@ import type { DealCard as Deal } from "@/server/services/discovery";
 import { DEAL_TYPE_META, priceDisplay } from "@/lib/deals";
 import { cn, formatDistance } from "@/lib/utils";
 import { SmartImage } from "../smart-image";
+import { ExclusiveBadge } from "./exclusive-badge";
 import { FavoriteButton } from "./favorite-button";
 import { availabilityLabel, urgencyLabel } from "./deal-labels";
 
@@ -37,8 +38,9 @@ export function DealCard({
           fallbackLabel={deal.business_name}
           className="transition-transform duration-500 group-hover:scale-[1.03]"
         />
-        <div className="absolute top-3 left-3 flex gap-1.5">
+        <div className="absolute top-3 right-14 left-3 flex flex-wrap gap-1.5">
           <span className="rounded-full bg-lime px-2.5 py-1 text-[12px] font-extrabold tracking-wide text-ink shadow-sm">{price.badge}</span>
+          {deal.is_exclusive ? <ExclusiveBadge /> : null}
         </div>
         <FavoriteButton dealId={deal.id} initial={deal.is_favorite} signedIn={signedIn} className="absolute top-2.5 right-2.5" />
         <span className="absolute bottom-3 left-3 rounded-full bg-ink/75 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md">

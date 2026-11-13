@@ -63,6 +63,7 @@ const common = {
   redemption_instructions: optionalText(1000),
   restrictions: optionalText(1000),
   per_customer_limit: z.coerce.number().int().min(1).max(10).default(1),
+  is_exclusive: z.boolean().default(false),
 };
 
 export const surplusSchema = z.object({

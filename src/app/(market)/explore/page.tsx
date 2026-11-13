@@ -31,21 +31,30 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
   const radius = [1, 3, 5, 10, 25].includes(Number(sp.radius)) ? Number(sp.radius) : loc.radius;
   const maxPrice = [10, 25, 50].includes(Number(sp.maxPrice)) ? Number(sp.maxPrice) * 100 : undefined;
   const view = sp.view === "map" ? "map" : "list";
+  const exclusive = sp.exclusive === "1";
 
   const deals = await listLiveDeals(
     await getDb(),
     loc,
-    { q: sp.q, category, sort, type, radiusMiles: radius, maxPriceCents: maxPrice, lastMinute: sp.lastMinute === "1", limit: 120 },
+    { q: sp.q, category, sort, type, radiusMiles: radius, maxPriceCents: maxPrice, lastMinute: sp.lastMinute === "1", exclusive, limit: 120 },
     viewer?.id ?? null,
   );
 
-  const keep: SP = { q: sp.q, sort: sp.sort, type: sp.type, radius: sp.radius, maxPrice: sp.maxPrice, category: sp.category, lastMinute: sp.lastMinute };
+  const keep: SP = { q: sp.q, sort: sp.sort, type: sp.type, radius: sp.radius, maxPrice: sp.maxPrice, category: sp.category, lastMinute: sp.lastMinute, exclusive: sp.exclusive };
   const qs = (extra: SP) => {
     const p = new URLSearchParams();
     for (const [k, v] of Object.entries({ ...keep, ...extra })) if (v) p.set(k, v);
     return `/explore?${p.toString()}`;
   };
-  const heading = sp.q ? `Results for “${sp.q}”` : sp.lastMinute === "1" ? "Last-minute deals" : category ? categoryName(category) : "All deals";
+  const heading = sp.q
+    ? `Results for “${sp.q}”`
+    : exclusive
+      ? "Frugal Center Exclusives"
+      : sp.lastMinute === "1"
+        ? "Last-minute deals"
+        : category
+          ? categoryName(category)
+          : "All deals";
 
   return (
     <div>
@@ -54,7 +63,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
           <Suspense>
             <SearchBox className="max-w-2xl lg:hidden" autoFocus={sp.focus === "1"} />
           </Suspense>
-          <CategoryBar basePath="/explore" params={keep} active={sp.lastMinute === "1" ? "last-minute" : (category ?? "all")} className="-mx-2 mt-3" />
+          <CategoryBar basePath="/explore" params={keep} active={exclusive ? "exclusive" : sp.lastMinute === "1" ? "last-minute" : (category ?? "all")} className="-mx-2 mt-3" />
         </div>
       </div>
       <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
@@ -62,6 +71,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
           <div>
             <h1 className="text-2xl font-extrabold sm:text-3xl">{heading}</h1>
             <p className="mt-1 text-sm text-muted">
+              {exclusive ? "Offers local businesses run only on Frugal Center. " : ""}
               {pluralize(deals.length, "deal")} within {radius} mi of {loc.label}
             </p>
           </div>
