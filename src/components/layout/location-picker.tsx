@@ -28,7 +28,7 @@ export function LocationPicker({
   radius: number;
   areas: Area[];
   className?: string;
-  compact?: boolean;
+  compact?: boolean | "tight";
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -84,7 +84,7 @@ export function LocationPicker({
           aria-label={`Location: ${label}. Change location`}
         >
           <MapPin className="size-4 shrink-0" aria-hidden />
-          <span className={cn("truncate", compact ? "max-w-[9.5rem]" : "max-w-[12rem]")}>{label}</span>
+          <span className={cn("truncate", compact === "tight" ? "max-w-[5.5rem] sm:max-w-[9.5rem]" : compact ? "max-w-[9.5rem]" : "max-w-[12rem]")}>{label}</span>
           <ChevronDown className="size-4 shrink-0 text-muted" aria-hidden />
         </button>
       </DialogTrigger>

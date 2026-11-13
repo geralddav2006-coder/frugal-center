@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Bell, Heart, LayoutDashboard, LogOut, PiggyBank, Shield, Store, Ticket, User } from "lucide-react";
+import { Bell, Heart, LayoutDashboard, LogOut, PiggyBank, ScanLine, Shield, Store, Ticket, User } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { signOutAction } from "@/app/actions/auth";
 import { initials } from "@/lib/utils";
@@ -19,15 +19,20 @@ export function ProfileMenu({ name, email, isAdmin, hasBusiness }: { name: strin
           <span className="block truncate font-normal">{email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {hasBusiness ? (
+          <>
+            <DropdownMenuItem asChild className="font-bold"><Link href="/dashboard"><LayoutDashboard />Business dashboard</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link href="/dashboard/redeem"><ScanLine />Redeem a voucher</Link></DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        ) : null}
         <DropdownMenuItem asChild><Link href="/my-deals"><Ticket />My Deals</Link></DropdownMenuItem>
         <DropdownMenuItem asChild><Link href="/savings"><PiggyBank />Savings</Link></DropdownMenuItem>
         <DropdownMenuItem asChild><Link href="/following"><Heart />Following</Link></DropdownMenuItem>
         <DropdownMenuItem asChild><Link href="/notifications"><Bell />Notifications</Link></DropdownMenuItem>
         <DropdownMenuItem asChild><Link href="/profile"><User />Profile & settings</Link></DropdownMenuItem>
         <DropdownMenuSeparator />
-        {hasBusiness ? (
-          <DropdownMenuItem asChild><Link href="/dashboard"><LayoutDashboard />Business dashboard</Link></DropdownMenuItem>
-        ) : (
+        {hasBusiness ? null : (
           <DropdownMenuItem asChild><Link href="/for-business"><Store />List your business</Link></DropdownMenuItem>
         )}
         {isAdmin ? <DropdownMenuItem asChild><Link href="/admin"><Shield />Admin</Link></DropdownMenuItem> : null}

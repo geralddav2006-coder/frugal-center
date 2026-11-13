@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Bell, ChevronRight, Heart, LayoutDashboard, MapPin, PiggyBank, Shield, Store, Ticket } from "lucide-react";
+import { Bell, ChevronRight, Heart, LayoutDashboard, MapPin, PiggyBank, ScanLine, Shield, Store, Ticket } from "lucide-react";
 import { requireViewer } from "@/server/auth";
 import { getDb } from "@/server/db";
 import { env, integrations } from "@/server/env";
@@ -9,6 +9,7 @@ import { getPreferences } from "@/server/services/engagement";
 import { listLaunchAreas } from "@/server/services/discovery";
 import { formatDate } from "@/lib/time";
 import { LocationPicker } from "@/components/layout/location-picker";
+import { BusinessAvatar } from "@/components/business-avatar";
 import { PreferencesForm, NameForm } from "./forms";
 import { SignOutButton } from "./sign-out";
 
@@ -36,6 +37,30 @@ export default async function ProfilePage() {
     <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6 sm:py-10">
       <h1 className="text-3xl font-extrabold">Profile</h1>
       <p className="mt-1 text-muted">{viewer.email} · Member since {formatDate(created!.created_at)}</p>
+
+      {viewer.memberships.length ? (
+        <section className="mt-6 grid gap-3" aria-label="Your business">
+          {viewer.memberships.map((m) => (
+            <div key={m.business_id} className="rounded-[22px] bg-ink p-5 text-white">
+              <div className="flex items-center gap-3">
+                <BusinessAvatar name={m.name} src={m.logo_url} className="size-12 text-base" />
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-white/60">Your business · <span className="capitalize">{m.role}</span></p>
+                  <p className="truncate text-lg font-extrabold">{m.name}</p>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <Link href="/dashboard" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-lime text-[15px] font-extrabold text-ink active:scale-[0.97]">
+                  <LayoutDashboard className="size-4" aria-hidden /> Dashboard
+                </Link>
+                <Link href="/dashboard/redeem" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/20 text-[15px] font-semibold active:scale-[0.97]">
+                  <ScanLine className="size-4" aria-hidden /> Redeem
+                </Link>
+              </div>
+            </div>
+          ))}
+        </section>
+      ) : null}
 
       <section className="mt-8 rounded-[var(--radius-card)] border border-line p-5">
         <h2 className="font-extrabold">Account</h2>

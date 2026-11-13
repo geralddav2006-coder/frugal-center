@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, Store } from "lucide-react";
 import { getViewer } from "@/server/auth";
 import { getDb } from "@/server/db";
 import { getViewerLocation } from "@/server/location";
@@ -20,6 +20,7 @@ export async function SiteHeader() {
     listLaunchAreas(db),
     viewer ? unreadCount(db, viewer.id) : Promise.resolve(0),
   ]);
+  const isMember = !!viewer?.memberships.length;
 
   return (
     <header className="sticky top-0 z-40 border-b border-line/70 bg-white/90 backdrop-blur-xl">
@@ -28,17 +29,19 @@ export async function SiteHeader() {
           <LogoMark className="size-9" />
         </Link>
         <Logo className="hidden md:flex" />
-        <LocationPicker label={loc.label} radius={loc.radius} areas={areas} compact className="md:ml-3" />
+        <LocationPicker label={loc.label} radius={loc.radius} areas={areas} compact={isMember ? "tight" : true} className="md:ml-3" />
         <div className="mx-4 hidden max-w-md flex-1 lg:block">
           <Suspense>
             <SearchBox />
           </Suspense>
         </div>
         <div className="ml-auto flex items-center gap-1">
-          <Link href="/for-business" className="mr-2 hidden rounded-full px-3 py-2 text-sm font-semibold hover:bg-mist xl:block">
-            For businesses
-          </Link>
-          <Button asChild variant="ghost" size="icon" className="lg:hidden">
+          {isMember ? null : (
+            <Link href="/for-business" className="mr-2 hidden rounded-full px-3 py-2 text-sm font-semibold hover:bg-mist xl:block">
+              For businesses
+            </Link>
+          )}
+          <Button asChild variant="ghost" size="icon" className={isMember ? "hidden sm:inline-flex lg:hidden" : "lg:hidden"}>
             <Link href="/explore?focus=1" aria-label="Search"><Search className="size-5" /></Link>
           </Button>
           {viewer ? (
@@ -53,6 +56,15 @@ export async function SiteHeader() {
                   ) : null}
                 </Link>
               </Button>
+              {isMember ? (
+                <Button asChild size="sm" className="ml-1 gap-1.5 px-3.5">
+                  <Link href="/dashboard" aria-label="Business dashboard">
+                    <Store className="text-lime" aria-hidden />
+                    <span className="lg:hidden">Business</span>
+                    <span className="hidden lg:inline">Business dashboard</span>
+                  </Link>
+                </Button>
+              ) : null}
               <div className="ml-1 hidden md:block">
                 <ProfileMenu name={viewer.fullName} email={viewer.email} isAdmin={viewer.isAdmin} hasBusiness={viewer.memberships.length > 0} />
               </div>
