@@ -24,7 +24,7 @@ export default async function SharedSavingsPage({ params }: Props) {
       <div className="relative w-full max-w-md overflow-hidden rounded-[32px] bg-ink p-9 text-white shadow-[var(--shadow-lift)]">
         <Logo className="[&_span]:text-white" />
         <p className="mt-10 text-lg text-white/70">{s.firstName} has saved</p>
-        <p className="text-[72px] leading-none font-extrabold tracking-[-0.04em] text-lime tabular">{formatMoney(s.totalCents)}</p>
+        <p className="text-[72px] leading-none font-display font-extrabold tracking-[-0.02em] text-lime tabular">{formatMoney(s.totalCents)}</p>
         <p className="mt-4 text-lg">
           on {s.count} local {s.count === 1 ? "deal" : "deals"} at {s.businesses} neighborhood {s.businesses === 1 ? "business" : "businesses"}.
         </p>

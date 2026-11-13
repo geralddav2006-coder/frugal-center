@@ -3,9 +3,14 @@
 
 /* Frugal Center design tokens */
 @theme {
-  --color-lime: #b7ff00;
-  --color-lime-soft: #f1ffcc;
-  --color-lime-ink: #3d6b00; /* lime family, AA-legible on white for "+$11 saved" text */
+  /* Brand green. Token names stay "lime" so every component picks it up.
+     Alternatives from the options sheet (main / soft / ink):
+       B Electric green  #2ef27a / #e0fdeb / #0b7a3b
+       C Lime green      #9be22f / #f0fadf / #3b7a0c
+     Also update the logo fill in brand.tsx, icon.svg and public/logo-mark.svg. */
+  --color-lime: #5ce65c;
+  --color-lime-soft: #e6fbe3;
+  --color-lime-ink: #1d7a1f; /* green text on white, 5.4:1 contrast */
   --color-ink: #191919;
   --color-ink-soft: #2a2a28;
   --color-paper: #fafaf7;
@@ -21,6 +26,7 @@
   --color-ring: #191919;
 
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-archivo), var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Roboto Mono", Menlo, monospace;
 
   --radius-card: 1.125rem;
@@ -58,6 +64,13 @@
   h1, h2, h3, h4 {
     letter-spacing: -0.025em;
     text-wrap: balance;
+  }
+  /* Expanded bold display face for headings (Archivo at 125% width) */
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+    font-stretch: 125%;
+    font-variation-settings: "wdth" 125;
+    letter-spacing: -0.01em;
   }
   :focus-visible {
     outline: 2px solid var(--color-ink);

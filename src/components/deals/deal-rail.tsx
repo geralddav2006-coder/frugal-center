@@ -31,7 +31,7 @@ export function DealRail({
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {href ? (
-            <Link href={href} className="flex items-center gap-1 rounded-full px-2 py-1 text-sm font-semibold underline-offset-4 hover:underline">
+            <Link href={href} className="flex items-center gap-1 rounded-full px-2 py-1 text-sm font-bold text-lime-ink underline-offset-4 hover:underline">
               See all <ArrowRight className="size-4" aria-hidden />
             </Link>
           ) : null}

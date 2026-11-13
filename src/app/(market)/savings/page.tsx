@@ -27,7 +27,7 @@ export default async function SavingsPage() {
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
       <section className="relative overflow-hidden rounded-[28px] bg-ink p-7 text-white sm:p-10">
         <p className="flex items-center gap-2 text-sm font-semibold text-white/70"><PiggyBank className="size-4" aria-hidden /> Your Total Savings</p>
-        <p className="mt-2 text-[56px] leading-none font-extrabold tracking-[-0.04em] text-lime tabular sm:text-[88px]">{total}</p>
+        <p className="mt-2 text-[56px] leading-none font-display font-extrabold tracking-[-0.02em] text-lime tabular sm:text-[88px]">{total}</p>
         <p className="mt-2 text-lg font-semibold">saved</p>
         <p className="mt-4 max-w-md text-sm text-white/60">
           Counted only when a business confirms your redemption — claimed-but-unused deals never count.

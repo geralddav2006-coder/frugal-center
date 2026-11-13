@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { LayoutGrid, ShoppingBag, Sparkles, Ticket, UtensilsCrossed, Wrench, Zap } from "lucide-react";
+import { Croissant, LayoutGrid, ShoppingBag, Sparkles, Ticket, Wrench, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const CATEGORY_TABS = [
   { key: "all", label: "All", icon: LayoutGrid },
-  { key: "food-drink", label: "Food & Drink", icon: UtensilsCrossed },
+  { key: "food-drink", label: "Food & Drink", icon: Croissant },
   { key: "beauty-wellness", label: "Beauty & Wellness", icon: Sparkles },
   { key: "shopping", label: "Shopping", icon: ShoppingBag },
   { key: "activities", label: "Activities", icon: Ticket },

@@ -44,7 +44,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold shadow-[var(--shadow-soft)]">
             <MapPin className="size-3.5" aria-hidden /> {loc.label} · within {loc.radius} mi
           </p>
-          <h1 className="max-w-3xl text-[40px] leading-[1.02] font-extrabold tracking-[-0.045em] sm:text-6xl lg:text-7xl">
+          <h1 className="max-w-3xl text-[33px] leading-[1.05] font-extrabold tracking-[-0.02em] sm:text-6xl lg:text-7xl">
             Good deals, <span className="marker">close to home.</span>
           </h1>
           <p className="mt-4 max-w-xl text-[17px] text-muted sm:text-lg">Discover exclusive discounts from local businesses.</p>

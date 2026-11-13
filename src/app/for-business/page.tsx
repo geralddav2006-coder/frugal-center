@@ -56,7 +56,7 @@ export default async function ForBusinessPage() {
             <p className="inline-flex items-center gap-1.5 rounded-full bg-lime px-3 py-1.5 text-xs font-extrabold">
               <Sparkles className="size-3.5" aria-hidden /> $29/month · zero commissions
             </p>
-            <h1 className="mt-5 text-[42px] leading-[1.02] font-extrabold tracking-[-0.045em] sm:text-6xl">
+            <h1 className="mt-5 text-[42px] leading-[1.02] font-extrabold tracking-[-0.02em] sm:text-6xl">
               Turn empty time slots and unsold inventory into <span className="marker">revenue.</span>
             </h1>
             <p className="mt-5 max-w-xl text-lg text-muted">
@@ -71,7 +71,7 @@ export default async function ForBusinessPage() {
 
           {/* Product preview built from real UI pieces (illustrative content) */}
           <div className="relative mx-auto w-full max-w-sm" aria-hidden>
-            <div className="absolute -inset-8 -z-10 rounded-[48px] bg-[radial-gradient(circle_at_70%_30%,#f1ffcc,transparent_60%)]" />
+            <div className="absolute -inset-8 -z-10 rounded-[48px] bg-[radial-gradient(circle_at_70%_30%,#e6fbe3,transparent_60%)]" />
             <div className="rounded-[36px] border-[10px] border-ink bg-white p-4 shadow-[var(--shadow-lift)]">
               <div className="flex items-center justify-between text-xs font-semibold text-muted"><span>Redeem</span><span>Main Street Bakery</span></div>
               <div className="mt-3 rounded-2xl bg-ink p-5 text-white">

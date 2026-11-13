@@ -6,7 +6,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="relative hidden overflow-hidden bg-ink p-12 text-white lg:flex lg:flex-col lg:justify-between">
         <Logo className="[&_span]:text-white" />
         <div>
-          <p className="text-[64px] leading-[0.95] font-extrabold tracking-[-0.045em]">
+          <p className="text-[64px] leading-[0.95] font-extrabold tracking-[-0.02em]">
             Your neighborhood,<br /><span className="text-lime">on sale.</span>
           </p>
           <p className="mt-5 max-w-md text-lg text-white/70">Claim exclusive deals from local businesses in seconds. Always free for customers.</p>
