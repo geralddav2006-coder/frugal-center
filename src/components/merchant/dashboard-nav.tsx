@@ -22,29 +22,13 @@ export const NAV = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings, roles: ["owner", "manager"] },
 ] as const;
 
-/** Red count bubble for live offers. Hidden when there are none. */
-function LiveBadge({ count, className }: { count: number; className?: string }) {
-  if (count <= 0) return null;
-  return (
-    <span
-      className={cn(
-        "grid h-[18px] min-w-[18px] place-items-center rounded-full bg-danger px-1 text-[11px] leading-none font-extrabold text-white tabular",
-        className,
-      )}
-      aria-label={`${count} live ${count === 1 ? "offer" : "offers"}`}
-    >
-      {count > 99 ? "99+" : count}
-    </span>
-  );
-}
-
 function isActive(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === "/dashboard";
   if (href === "/dashboard/deals") return pathname.startsWith("/dashboard/deals") && pathname !== "/dashboard/deals/new";
   return pathname.startsWith(href);
 }
 
-export function SidebarNav({ role, liveCount = 0 }: { role: Role; liveCount?: number }) {
+export function SidebarNav({ role }: { role: Role }) {
   const pathname = usePathname();
   return (
     <nav aria-label="Dashboard" className="grid gap-0.5">
@@ -54,7 +38,6 @@ export function SidebarNav({ role, liveCount = 0 }: { role: Role; liveCount?: nu
           <Link key={href} href={href} aria-current={active ? "page" : undefined}
             className={cn("flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-semibold transition", active ? "bg-ink text-white" : "text-ink/80 hover:bg-mist hover:text-ink")}>
             <Icon className={cn("size-[18px]", active && "text-lime")} aria-hidden /> {label}
-            {href === "/dashboard/deals" ? <LiveBadge count={liveCount} className="ml-auto" /> : null}
           </Link>
         );
       })}
@@ -62,7 +45,7 @@ export function SidebarNav({ role, liveCount = 0 }: { role: Role; liveCount?: nu
   );
 }
 
-export function MobileDashboardNav({ role, liveCount = 0 }: { role: Role; liveCount?: number }) {
+export function MobileDashboardNav({ role }: { role: Role }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const canCreate = role !== "staff";
@@ -86,7 +69,6 @@ export function MobileDashboardNav({ role, liveCount = 0 }: { role: Role; liveCo
                 ) : (
                   <span className={cn("relative grid h-7 w-12 place-items-center rounded-full", active ? "bg-ink text-lime" : "text-muted")}>
                     <Icon className="size-5" aria-hidden />
-                    {href === "/dashboard/deals" ? <LiveBadge count={liveCount} className="absolute -top-1.5 right-0.5 ring-2 ring-white" /> : null}
                   </span>
                 )}
                 <span className={active ? "text-ink" : "text-muted"}>{label}</span>
@@ -108,7 +90,7 @@ export function MobileDashboardNav({ role, liveCount = 0 }: { role: Role; liveCo
                   <D.Close className="grid size-9 place-items-center rounded-full hover:bg-mist" aria-label="Close"><X className="size-5" /></D.Close>
                 </div>
                 <div onClick={() => setOpen(false)}>
-                  <SidebarNav role={role} liveCount={liveCount} />
+                  <SidebarNav role={role} />
                   <Link href="/" className="mt-2 flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-semibold text-muted hover:bg-mist">← Back to Frugal Center</Link>
                 </div>
               </D.Content>

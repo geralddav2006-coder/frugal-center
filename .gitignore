@@ -45,3 +45,7 @@ next-env.d.ts
 /.data
 /test-results
 /playwright-report
+
+certificates
+# self-signed dev HTTPS certificates (npm run dev:https)
+/certificates

@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   // (countdowns, vouchers, capacity), so routes render dynamically per request
   // and stream through loading.tsx skeletons.
   cacheComponents: false,
+  // Dev only: let phones/tablets on the same Wi-Fi (private IP ranges) and
+  // Cloudflare quick tunnels load the dev server. Ignored in production builds.
+  allowedDevOrigins: ["192.168.*.*", "10.*.*.*", "172.*.*.*", "*.local", "*.trycloudflare.com"],
   serverExternalPackages: ["@electric-sql/pglite", "postgres", "web-push", "bcryptjs"],
   outputFileTracingIncludes: { "/**": ["./supabase/migrations/**"] },
   images: {
