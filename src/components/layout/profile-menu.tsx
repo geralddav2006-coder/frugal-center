@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Bell, Heart, LayoutDashboard, LogOut, PiggyBank, ScanLine, Shield, Store, Ticket, User } from "lucide-react";
+import { Bell, Flag, Heart, LayoutDashboard, LogOut, PiggyBank, ScanLine, Shield, Store, Ticket, User } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { signOutAction } from "@/app/actions/auth";
 import { initials } from "@/lib/utils";
@@ -19,6 +19,13 @@ export function ProfileMenu({ name, email, isAdmin, hasBusiness }: { name: strin
           <span className="block truncate font-normal">{email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {isAdmin ? (
+          <>
+            <DropdownMenuItem asChild className="font-bold"><Link href="/admin"><Shield />Admin dashboard</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link href="/admin?tab=reports"><Flag />Abuse reports</Link></DropdownMenuItem>
+            {hasBusiness ? null : <DropdownMenuSeparator />}
+          </>
+        ) : null}
         {hasBusiness ? (
           <>
             <DropdownMenuItem asChild className="font-bold"><Link href="/dashboard"><LayoutDashboard />Business dashboard</Link></DropdownMenuItem>
@@ -35,7 +42,6 @@ export function ProfileMenu({ name, email, isAdmin, hasBusiness }: { name: strin
         {hasBusiness ? null : (
           <DropdownMenuItem asChild><Link href="/for-business"><Store />List your business</Link></DropdownMenuItem>
         )}
-        {isAdmin ? <DropdownMenuItem asChild><Link href="/admin"><Shield />Admin</Link></DropdownMenuItem> : null}
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => signOutAction()}><LogOut />Sign out</DropdownMenuItem>
       </DropdownMenuContent>

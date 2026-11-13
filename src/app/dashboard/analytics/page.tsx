@@ -50,13 +50,16 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
       </div>
 
       <section className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6" aria-label="Metrics">
-        {kpis.map((k) => (
-          <div key={k.label} className="rounded-[var(--radius-card)] border border-line bg-white p-4">
-            <p className="text-[13px] font-semibold text-muted">{k.label}</p>
-            <p className="mt-1 text-2xl font-extrabold tabular">{k.value}</p>
-            {k.note ? <p className="text-xs text-muted">{k.note}</p> : null}
-          </div>
-        ))}
+        {kpis.map((k) => {
+          const hero = k.label === "Confirmed revenue";
+          return (
+            <div key={k.label} className={hero ? "rounded-[var(--radius-card)] bg-ink p-4 text-white" : "rounded-[var(--radius-card)] border border-line bg-white p-4"}>
+              <p className={hero ? "text-[13px] font-semibold text-white/70" : "text-[13px] font-semibold text-muted"}>{k.label}</p>
+              <p className={hero ? "mt-1 font-display text-2xl font-extrabold text-lime tabular" : "mt-1 text-2xl font-extrabold tabular"}>{k.value}</p>
+              {k.note ? <p className={hero ? "text-xs text-white/60" : "text-xs text-muted"}>{k.note}</p> : null}
+            </div>
+          );
+        })}
       </section>
       <p className="mt-3 text-xs text-muted">
         Revenue counts only amounts confirmed at redemption — what customers paid for redeemed deals. Frugal Center doesn&apos;t estimate sales it can&apos;t verify.
@@ -70,8 +73,10 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
             title="Claims and redemptions per day"
             labels={daily.map((d) => DAY.format(new Date(`${d.day}T00:00:00Z`)))}
             series={[
-              { name: "Claims", color: "#2a78d6", values: daily.map((d) => d.claims) },
-              { name: "Redemptions", color: "#eb6834", values: daily.map((d) => d.redemptions) },
+              // Brand palette: redemptions in dark brand green with an electric-green area,
+              // claims as a dashed charcoal reference line (CVD-safe pair, see dataviz check).
+              { name: "Redemptions", color: "#0b7a3b", fill: "#2ef27a", values: daily.map((d) => d.redemptions) },
+              { name: "Claims", color: "#191919", dashed: true, values: daily.map((d) => d.claims) },
             ]}
           />
         ) : (

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Bell, ChevronRight, Heart, LayoutDashboard, MapPin, PiggyBank, ScanLine, Shield, Store, Ticket } from "lucide-react";
+import { Bell, ChevronRight, Flag, Heart, LayoutDashboard, MapPin, PiggyBank, ScanLine, Shield, Store, Ticket } from "lucide-react";
 import { requireViewer } from "@/server/auth";
 import { getDb } from "@/server/db";
 import { env, integrations } from "@/server/env";
@@ -37,6 +37,26 @@ export default async function ProfilePage() {
     <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6 sm:py-10">
       <h1 className="text-3xl font-extrabold">Profile</h1>
       <p className="mt-1 text-muted">{viewer.email} · Member since {formatDate(created!.created_at)}</p>
+
+      {viewer.isAdmin ? (
+        <section className="mt-6 rounded-[22px] border-2 border-ink p-5" aria-label="Platform admin">
+          <div className="flex items-center gap-3">
+            <span className="grid size-12 place-items-center rounded-2xl bg-lime"><Shield className="size-6" aria-hidden /></span>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-muted">Your access</p>
+              <p className="text-lg font-extrabold">Platform admin</p>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <Link href="/admin" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-ink text-[15px] font-extrabold text-white active:scale-[0.97]">
+              <Shield className="size-4 text-lime" aria-hidden /> Admin
+            </Link>
+            <Link href="/admin?tab=reports" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-line text-[15px] font-semibold active:scale-[0.97]">
+              <Flag className="size-4" aria-hidden /> Reports
+            </Link>
+          </div>
+        </section>
+      ) : null}
 
       {viewer.memberships.length ? (
         <section className="mt-6 grid gap-3" aria-label="Your business">
@@ -93,7 +113,27 @@ export default async function ProfilePage() {
       </nav>
 
       <nav className="mt-5 overflow-hidden rounded-[var(--radius-card)] border border-line" aria-label="Other">
-        {viewer.memberships.length ? (
+        {viewer.isAdmin ? (
+        <section className="mt-6 rounded-[22px] border-2 border-ink p-5" aria-label="Platform admin">
+          <div className="flex items-center gap-3">
+            <span className="grid size-12 place-items-center rounded-2xl bg-lime"><Shield className="size-6" aria-hidden /></span>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-muted">Your access</p>
+              <p className="text-lg font-extrabold">Platform admin</p>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <Link href="/admin" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-ink text-[15px] font-extrabold text-white active:scale-[0.97]">
+              <Shield className="size-4 text-lime" aria-hidden /> Admin
+            </Link>
+            <Link href="/admin?tab=reports" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-line text-[15px] font-semibold active:scale-[0.97]">
+              <Flag className="size-4" aria-hidden /> Reports
+            </Link>
+          </div>
+        </section>
+      ) : null}
+
+      {viewer.memberships.length ? (
           <Link href="/dashboard" className="flex items-center gap-3 border-b border-line px-5 py-4 font-semibold last:border-0 hover:bg-paper">
             <LayoutDashboard className="size-5 text-muted" aria-hidden /> Business dashboard <ChevronRight className="ml-auto size-4 text-muted" aria-hidden />
           </Link>

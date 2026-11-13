@@ -1,15 +1,18 @@
 "use client";
-import { useMemo, useRef, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 
 export interface LineSeries {
   name: string;
-  color: string; // validated categorical slot
+  color: string; // line color (validated pair)
   values: number[];
+  dashed?: boolean; // secondary encoding for a reference series
+  fill?: string; // optional gradient area under the line (brand accent)
 }
 
 /** Multi-series line chart (one y-axis), crosshair + tooltip, legend + direct end labels, table fallback. */
 export function LineChart({ labels, series, height = 220, title }: { labels: string[]; series: LineSeries[]; height?: number; title: string }) {
   const ref = useRef<HTMLDivElement>(null);
+  const gid = useId().replace(/:/g, "");
   const [hover, setHover] = useState<number | null>(null);
   const W = 640;
   const H = height;
@@ -31,7 +34,10 @@ export function LineChart({ labels, series, height = 220, title }: { labels: str
       <div className="mb-3 flex flex-wrap gap-4" aria-label="Legend">
         {series.map((s) => (
           <span key={s.name} className="flex items-center gap-2 text-sm font-semibold">
-            <span className="h-0.5 w-5 rounded" style={{ background: s.color }} aria-hidden /> {s.name}
+            <svg width="22" height="8" aria-hidden>
+              <line x1="1" x2="21" y1="4" y2="4" stroke={s.color} strokeWidth={s.dashed ? 2 : 3} strokeDasharray={s.dashed ? "4 3" : undefined} strokeLinecap="round" />
+            </svg>
+            {s.name}
           </span>
         ))}
       </div>
@@ -47,6 +53,16 @@ export function LineChart({ labels, series, height = 220, title }: { labels: str
         }}
       >
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={title}>
+          <defs>
+            {series.map((s, si) =>
+              s.fill ? (
+                <linearGradient key={si} id={`${gid}-fill-${si}`} x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor={s.fill} stopOpacity={0.45} />
+                  <stop offset="100%" stopColor={s.fill} stopOpacity={0.02} />
+                </linearGradient>
+              ) : null,
+            )}
+          </defs>
           {ticks.map((t) => (
             <g key={t}>
               <line x1={pad.l} x2={W - pad.r} y1={y(t)} y2={y(t)} stroke="#e5e6e0" strokeWidth={1} />
@@ -57,15 +73,22 @@ export function LineChart({ labels, series, height = 220, title }: { labels: str
             <text key={l + i} x={x(i)} y={H - 6} textAnchor="middle" fontSize={11} fill="#6b6e66">{l}</text>
           ) : null))}
           {hover != null ? <line x1={x(hover)} x2={x(hover)} y1={pad.t} y2={H - pad.b} stroke="#191919" strokeOpacity={0.25} /> : null}
-          {series.map((s, si) => (
+          {/* Draw dashed reference series first so the primary (solid) series stays on top where they overlap */}
+          {series
+            .map((s, si) => ({ s, si }))
+            .sort((a, b) => Number(!!b.s.dashed) - Number(!!a.s.dashed))
+            .map(({ s, si }) => (
             <g key={s.name}>
-              <path d={paths[si]} fill="none" stroke={s.color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+              {s.fill && labels.length > 1 ? (
+                <path d={`${paths[si]}L${x(labels.length - 1).toFixed(1)},${y(0).toFixed(1)}L${x(0).toFixed(1)},${y(0).toFixed(1)}Z`} fill={`url(#${gid}-fill-${si})`} />
+              ) : null}
+              <path d={paths[si]} fill="none" stroke={s.color} strokeWidth={s.dashed ? 2 : 2.5} strokeDasharray={s.dashed ? "5 4" : undefined} strokeLinejoin="round" strokeLinecap="round" />
               <text x={x(labels.length - 1) + 8} y={y(s.values.at(-1) ?? 0) + 4 + (si ? 12 : -2) * (Math.abs(y(series[0]!.values.at(-1) ?? 0) - y(series[1]?.values.at(-1) ?? 0)) < 14 ? 1 : 0)} fontSize={12} fontWeight={700} fill="#191919">
                 {s.name}
               </text>
               {hover != null ? <circle cx={x(hover)} cy={y(s.values[hover] ?? 0)} r={4.5} fill={s.color} stroke="#fff" strokeWidth={2} /> : null}
             </g>
-          ))}
+            ))}
         </svg>
         {hover != null ? (
           <div

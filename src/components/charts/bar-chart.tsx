@@ -39,7 +39,7 @@ export function BarChart({ data, title, height = 180 }: { data: BarDatum[]; titl
                 </span>
               ) : null}
               <div
-                className={cn("w-full max-w-10 rounded-t-[4px] transition-[height,background] duration-500", d.highlight ? "bg-lime" : hover === i ? "bg-ink" : "bg-ink/85")}
+                className={cn("w-full max-w-10 rounded-t-[4px] transition-[height,background] duration-500", d.highlight ? "bg-lime" : hover === i ? "bg-lime-ink" : "bg-lime-ink/80")}
                 style={{ height: h }}
               />
             </div>
