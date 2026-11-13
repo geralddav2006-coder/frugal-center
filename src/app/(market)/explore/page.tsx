@@ -6,7 +6,7 @@ import { getViewer } from "@/server/auth";
 import { getDb } from "@/server/db";
 import { getViewerLocation } from "@/server/location";
 import { listLiveDeals, type SortKey } from "@/server/services/discovery";
-import { CATEGORIES, categoryName, priceDisplay, type DealType } from "@/lib/deals";
+import { CATEGORIES, DEAL_TYPES, categoryName, priceDisplay, type DealType } from "@/lib/deals";
 import { formatDistance, pluralize } from "@/lib/utils";
 import { DealCard } from "@/components/deals/deal-card";
 import { CategoryBar } from "@/components/deals/category-bar";
@@ -27,11 +27,11 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
   const loc = await getViewerLocation(viewer);
   const category = CATEGORIES.some((c) => c.slug === sp.category) ? sp.category : undefined;
   const sort = (["nearest", "ending", "newest", "discount"] as SortKey[]).includes(sp.sort as SortKey) ? (sp.sort as SortKey) : "nearest";
-  const type = (["surplus", "appointment", "slow_hours"] as DealType[]).includes(sp.type as DealType) ? (sp.type as DealType) : undefined;
+  const type = DEAL_TYPES.includes(sp.type as DealType) ? (sp.type as DealType) : undefined;
   const radius = [1, 3, 5, 10, 25].includes(Number(sp.radius)) ? Number(sp.radius) : loc.radius;
   const maxPrice = [10, 25, 50].includes(Number(sp.maxPrice)) ? Number(sp.maxPrice) * 100 : undefined;
   const view = sp.view === "map" ? "map" : "list";
-  const exclusive = sp.exclusive === "1";
+  const exclusive = sp.exclusive === "1" || type === "exclusive";
 
   const deals = await listLiveDeals(
     await getDb(),

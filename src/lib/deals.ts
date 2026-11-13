@@ -1,7 +1,8 @@
 import { formatMoney } from "./utils";
 import { formatDays, formatHHMM, hhmmToMinutes, zonedDayAndMinutes } from "./time";
 
-export type DealType = "surplus" | "appointment" | "slow_hours";
+export type DealType = "surplus" | "appointment" | "slow_hours" | "exclusive";
+export const DEAL_TYPES: DealType[] = ["surplus", "appointment", "slow_hours", "exclusive"];
 export type DiscountKind = "fixed_price" | "percent" | "amount_off";
 export type DealStatus = "draft" | "published" | "paused" | "ended";
 
@@ -9,6 +10,7 @@ export const DEAL_TYPE_META: Record<DealType, { label: string; short: string; bl
   surplus: { label: "Surplus inventory", short: "Surplus", blurb: "Limited quantities, pick up in store" },
   appointment: { label: "Last-minute appointment", short: "Appointment", blurb: "A specific open time slot" },
   slow_hours: { label: "Off-peak offer", short: "Off-peak", blurb: "Valid during quieter hours" },
+  exclusive: { label: "Frugal Center exclusive", short: "Exclusive", blurb: "A promotional discount offered only on Frugal Center" },
 };
 
 export const CATEGORIES = [

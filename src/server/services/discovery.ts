@@ -39,7 +39,6 @@ export interface DealCard {
   next_slot_at: Date | null;
   slots_remaining: number | null;
   is_favorite: boolean;
-  is_exclusive: boolean;
 }
 
 export type SortKey = "nearest" | "ending" | "newest" | "discount";
@@ -49,7 +48,7 @@ export interface DealQuery {
   category?: string;
   type?: DealType;
   lastMinute?: boolean;
-  exclusive?: boolean; // only Frugal Center exclusives
+  exclusive?: boolean; // only Frugal Center exclusives (type = 'exclusive')
   maxPriceCents?: number;
   radiusMiles?: number;
   sort?: SortKey;
@@ -74,7 +73,7 @@ export const LIVE_DEAL_SQL = `
 const CARD_COLUMNS = `
   d.id, d.type, d.status, d.title, d.images, d.discount_kind, d.original_price_cents, d.deal_price_cents,
   d.percent_off, d.amount_off_cents, d.quantity_total, d.claimed_count, d.starts_at, d.ends_at,
-  d.published_at, d.duration_minutes, d.recurring_days, d.is_exclusive,
+  d.published_at, d.duration_minutes, d.recurring_days,
   to_char(d.window_start, 'HH24:MI') as window_start, to_char(d.window_end, 'HH24:MI') as window_end,
   b.id as business_id, b.name as business_name, b.slug as business_slug, b.logo_url as business_logo,
   b.cover_url as business_cover, b.category_slug, b.lat, b.lng, b.timezone,
@@ -116,7 +115,7 @@ export async function listLiveDeals(
     where.push(`((d.type = 'appointment' and s.next_slot_at < now() + interval '48 hours')
       or d.ends_at < now() + interval '6 hours')`);
   }
-  if (query.exclusive) where.push(`d.is_exclusive`);
+  if (query.exclusive) where.push(`d.type = 'exclusive'`);
   if (query.maxPriceCents != null) {
     where.push(`d.discount_kind = 'fixed_price' and d.deal_price_cents <= ${p(query.maxPriceCents)}`);
   }
@@ -366,7 +365,7 @@ export async function listLaunchAreas(db: Queryable) {
 /** Live deal count and best discount within the viewer's radius (for the hero). */
 export async function nearbyStats(db: Queryable, loc: GeoPoint, radiusMiles: number, category?: string) {
   const [r] = await db.query<{ n: number; max_pct: number; exclusive_n: number }>(
-    `select count(*)::int as n, count(*) filter (where d.is_exclusive)::int as exclusive_n,
+    `select count(*)::int as n, count(*) filter (where d.type = 'exclusive')::int as exclusive_n,
        coalesce(max(case
          when d.discount_kind = 'fixed_price' then round((d.original_price_cents - d.deal_price_cents)::numeric / d.original_price_cents * 100)
          when d.discount_kind = 'percent' then d.percent_off end), 0)::int as max_pct

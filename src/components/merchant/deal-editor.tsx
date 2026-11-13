@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Input, NativeSelect, Textarea } from "@/components/ui/input";
 import { Field } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
 import { MultiImageUpload } from "./image-upload";
 
 export interface EditorValue {
@@ -25,7 +24,6 @@ export interface EditorValue {
   redemption_instructions: string;
   restrictions: string;
   per_customer_limit: number;
-  is_exclusive: boolean;
   original_price: string;
   deal_price: string;
   quantity_total: string;
@@ -45,6 +43,7 @@ const TYPES: { type: DealType; icon: typeof Package; examples: string }[] = [
   { type: "surplus", icon: Package, examples: "Bakery leftovers, extra flowers, unsold retail" },
   { type: "appointment", icon: CalendarClock, examples: "Canceled nail, hair, massage or training slots" },
   { type: "slow_hours", icon: Clock, examples: "Afternoon specials, off-peak services" },
+  { type: "exclusive", icon: Gem, examples: "A promo only on Frugal Center: grand openings, seasonal sales, new-customer offers" },
 ];
 
 export function DealEditor({
@@ -70,6 +69,7 @@ export function DealEditor({
   const [pending, start] = useTransition();
   const set = <K extends keyof EditorValue>(k: K, val: EditorValue[K]) => setV((x) => ({ ...x, [k]: val }));
   const isPublished = status === "published" || status === "paused";
+  const flexible = v.type === "slow_hours" || v.type === "exclusive"; // percent, amount off or special price
 
   const now = useNow();
   const startsInFuture = useMemo(() => {
@@ -85,12 +85,12 @@ export function DealEditor({
     return (
       <div>
         <h1 className="text-3xl font-extrabold">Create a deal</h1>
-        <p className="mt-1 text-muted">What would you like to fill?</p>
-        <div className="mt-6 grid gap-3 md:grid-cols-3">
+        <p className="mt-1 text-muted">What kind of deal are you posting?</p>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
           {TYPES.map(({ type, icon: Icon, examples }) => (
             <button key={type} type="button" onClick={() => set("type", type)}
               className="group rounded-[var(--radius-card)] border border-line bg-white p-6 text-left transition hover:border-ink hover:shadow-[var(--shadow-soft)]">
-              <span className="grid size-12 place-items-center rounded-2xl bg-mist transition group-hover:bg-lime"><Icon className="size-6" aria-hidden /></span>
+              <span className={cn("grid size-12 place-items-center rounded-2xl transition group-hover:bg-lime", type === "exclusive" ? "bg-ink text-lime group-hover:text-ink" : "bg-mist")}><Icon className="size-6" aria-hidden /></span>
               <p className="mt-4 text-lg font-extrabold">{DEAL_TYPE_META[type].label}</p>
               <p className="mt-1 text-sm text-muted">{examples}</p>
             </button>
@@ -108,13 +108,25 @@ export function DealEditor({
       redemption_instructions: v.redemption_instructions || undefined,
       restrictions: v.restrictions || undefined,
       per_customer_limit: v.per_customer_limit,
-      is_exclusive: v.is_exclusive,
     };
     if (v.type === "surplus") {
       return { type: "surplus" as const, ...common, original_price: v.original_price, deal_price: v.deal_price, quantity_total: Number(v.quantity_total), starts_at: v.starts_at, ends_at: v.ends_at };
     }
     if (v.type === "appointment") {
       return { type: "appointment" as const, ...common, original_price: v.original_price, deal_price: v.deal_price, duration_minutes: Number(v.duration_minutes), slots: v.slots.map((s) => ({ id: s.id, starts_at: s.starts_at, capacity: Number(s.capacity) })) };
+    }
+    const flexiblePrice = {
+      discount_kind: v.discount_kind,
+      percent_off: v.discount_kind === "percent" ? Number(v.percent_off) : null,
+      amount_off: v.discount_kind === "amount_off" ? v.amount_off : null,
+      original_price: v.discount_kind === "fixed_price" ? v.original_price : null,
+      deal_price: v.discount_kind === "fixed_price" ? v.deal_price : null,
+    };
+    if (v.type === "exclusive") {
+      return {
+        type: "exclusive" as const, ...common, ...flexiblePrice,
+        quantity_total: v.quantity_total ? Number(v.quantity_total) : null, starts_at: v.starts_at, ends_at: v.ends_at,
+      };
     }
     return {
       type: "slow_hours" as const, ...common, discount_kind: v.discount_kind,
@@ -180,16 +192,16 @@ export function DealEditor({
         </Card>
 
         <Card title="Price">
-          {v.type === "slow_hours" ? (
+          {flexible ? (
             <Field label="Discount type" htmlFor="d-kind">
               <NativeSelect id="d-kind" value={v.discount_kind} disabled={locked} onChange={(e) => set("discount_kind", e.target.value as DiscountKind)}>
-                <option value="percent">Percentage off the bill</option>
-                <option value="amount_off">Fixed amount off the bill</option>
+                <option value="percent">Percentage off {v.type === "exclusive" ? "the purchase" : "the bill"}</option>
+                <option value="amount_off">Fixed amount off {v.type === "exclusive" ? "the purchase" : "the bill"}</option>
                 <option value="fixed_price">Special price for an item or service</option>
               </NativeSelect>
             </Field>
           ) : null}
-          {v.type !== "slow_hours" || v.discount_kind === "fixed_price" ? (
+          {!flexible || v.discount_kind === "fixed_price" ? (
             <div className="grid grid-cols-2 gap-3">
               <Field label="Regular price" htmlFor="d-orig"><MoneyInput id="d-orig" value={v.original_price} disabled={locked} onChange={(x) => set("original_price", x)} /></Field>
               <Field label="Discounted price" htmlFor="d-price"><MoneyInput id="d-price" value={v.deal_price} disabled={locked} onChange={(x) => set("deal_price", x)} /></Field>
@@ -278,6 +290,19 @@ export function DealEditor({
           </Card>
         ) : null}
 
+        {v.type === "exclusive" ? (
+          <Card title="When it's valid">
+            <p className="-mt-2 text-sm text-muted">Customers can use it any time you&apos;re open between these dates.</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Starts" htmlFor="d-start3"><Input id="d-start3" type="datetime-local" value={v.starts_at} onChange={(e) => set("starts_at", e.target.value)} /></Field>
+              <Field label="Ends" htmlFor="d-end3"><Input id="d-end3" type="datetime-local" value={v.ends_at} onChange={(e) => set("ends_at", e.target.value)} /></Field>
+            </div>
+            <Field label="Total vouchers (optional)" htmlFor="d-qty3" hint="Leave blank for no limit."><Input id="d-qty3" inputMode="numeric" value={v.quantity_total} onChange={(e) => set("quantity_total", e.target.value.replace(/\D/g, ""))} /></Field>
+            <Field label="Limits and restrictions" htmlFor="d-restr3"><Textarea id="d-restr3" rows={2} value={v.restrictions} onChange={(e) => set("restrictions", e.target.value)} placeholder="New customers only. Minimum $20 purchase." /></Field>
+            <Field label="Redemption instructions" htmlFor="d-instr4"><Textarea id="d-instr4" rows={2} value={v.redemption_instructions} onChange={(e) => set("redemption_instructions", e.target.value)} placeholder="Show your voucher at checkout." /></Field>
+          </Card>
+        ) : null}
+
         <Card title="Limits">
           <Field label="Per customer" htmlFor="d-limit">
             <NativeSelect id="d-limit" value={v.per_customer_limit} onChange={(e) => set("per_customer_limit", Number(e.target.value))}>
@@ -286,21 +311,6 @@ export function DealEditor({
           </Field>
           {v.type === "surplus" ? <Field label="Other restrictions" htmlFor="d-restr2"><Textarea id="d-restr2" rows={2} value={v.restrictions} onChange={(e) => set("restrictions", e.target.value)} placeholder="Contents vary. May contain nuts." /></Field> : null}
         </Card>
-
-        <section className={cn("rounded-[var(--radius-card)] border p-5 transition-colors sm:p-6", v.is_exclusive ? "border-ink bg-ink text-white" : "border-line bg-white")}>
-          <div className="flex items-start gap-4">
-            <span className={cn("grid size-11 shrink-0 place-items-center rounded-2xl", v.is_exclusive ? "bg-lime text-ink" : "bg-lime-soft text-lime-ink")}>
-              <Gem className="size-5" aria-hidden />
-            </span>
-            <div className="min-w-0 flex-1">
-              <label htmlFor="d-exclusive" className="block cursor-pointer text-lg font-extrabold">Make it a Frugal Center exclusive</label>
-              <p className={cn("mt-1 text-sm", v.is_exclusive ? "text-white/75" : "text-muted")}>
-                Only offer this deal through Frugal Center. Exclusives get an &ldquo;Exclusive&rdquo; badge and appear in the Exclusives section customers browse.
-              </p>
-            </div>
-            <Switch id="d-exclusive" checked={v.is_exclusive} onCheckedChange={(on) => set("is_exclusive", on)} className={v.is_exclusive ? "data-[state=checked]:bg-white/20" : undefined} />
-          </div>
-        </section>
 
         {error ? <p className="rounded-xl bg-[#fde8e7] p-3 text-sm font-medium text-danger" role="alert">{error}</p> : null}
 
@@ -360,10 +370,11 @@ function cents(s: string) {
 }
 
 function previewDeal(v: EditorValue, businessName: string, cover: string | null, timezone: string) {
-  const fixed = v.type !== "slow_hours" || v.discount_kind === "fixed_price";
+  const flexible = v.type === "slow_hours" || v.type === "exclusive";
+  const fixed = !flexible || v.discount_kind === "fixed_price";
   const orig = cents(v.original_price);
   const price = cents(v.deal_price);
-  const kind: DiscountKind = v.type === "slow_hours" ? v.discount_kind : "fixed_price";
+  const kind: DiscountKind = flexible ? v.discount_kind : "fixed_price";
   let badge: string | null = null;
   if (fixed && orig && price != null && price < orig) badge = `${Math.round(((orig - price) / orig) * 100)}% OFF · saves $${((orig - price) / 100).toFixed(2).replace(/\.00$/, "")}`;
   if (kind === "percent" && v.percent_off) badge = `${v.percent_off}% OFF`;
@@ -382,7 +393,6 @@ function previewDeal(v: EditorValue, businessName: string, cover: string | null,
     duration_minutes: Number(v.duration_minutes) || 60, recurring_days: v.recurring_days, window_start: v.window_start, window_end: v.window_end,
     business_id: "preview", business_name: businessName, business_slug: "", business_logo: null, business_cover: cover, category_slug: "food-drink",
     lat: 0, lng: 0, timezone, distance_miles: 0.6, next_slot_at: slot, slots_remaining: v.slots.reduce((n, s) => n + (Number(s.capacity) || 0), 0), is_favorite: false,
-    is_exclusive: v.is_exclusive,
   };
   return { card, badge };
 }

@@ -1,15 +1,21 @@
 import type { DealCard } from "@/server/services/discovery";
-import { formatDayTime, timeLeft } from "@/lib/time";
+import { formatDate, formatDayTime, timeLeft } from "@/lib/time";
 import { windowLabel } from "@/lib/deals";
 
 /** One short line about availability, by deal type. */
-export function availabilityLabel(d: Pick<DealCard, "type" | "quantity_total" | "claimed_count" | "next_slot_at" | "slots_remaining" | "timezone" | "recurring_days" | "window_start" | "window_end">) {
+export function availabilityLabel(d: Pick<DealCard, "type" | "quantity_total" | "claimed_count" | "next_slot_at" | "slots_remaining" | "timezone" | "recurring_days" | "window_start" | "window_end" | "ends_at">) {
   if (d.type === "appointment") {
     if (!d.next_slot_at) return "Fully booked";
     const spots = d.slots_remaining ?? 0;
     return `${formatDayTime(d.next_slot_at, d.timezone)}${spots > 1 ? ` · ${spots} spots` : ""}`;
   }
   if (d.type === "slow_hours") return windowLabel(d) ?? "Off-peak hours";
+  if (d.type === "exclusive") {
+    const left = d.quantity_total == null ? null : d.quantity_total - d.claimed_count;
+    if (left != null && left <= 0) return "Sold out";
+    if (left != null && left <= 10) return `Only ${left} left`;
+    return `Valid through ${formatDate(d.ends_at, d.timezone)}`;
+  }
   if (d.quantity_total == null) return "Limited quantities";
   const left = d.quantity_total - d.claimed_count;
   if (left <= 0) return "Sold out";

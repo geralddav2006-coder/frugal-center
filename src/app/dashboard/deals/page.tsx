@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Gem, PlusCircle, Tags } from "lucide-react";
+import { ChevronRight, PlusCircle, Tags } from "lucide-react";
 import { requireBusiness } from "@/server/auth";
 import { getDb } from "@/server/db";
 import { listMerchantDeals, type MerchantDeal } from "@/server/services/merchant";
@@ -60,7 +60,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Promis
                 <Link href={`/dashboard/deals/${d.id}`} className="flex items-center gap-4 rounded-[var(--radius-card)] border border-line bg-white p-3 transition hover:border-ink">
                   <div className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-mist sm:size-20"><SmartImage src={d.images[0]} alt="" sizes="80px" /></div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2"><DealStateBadge state={d.state} /><span className="text-xs font-semibold text-muted">{DEAL_TYPE_META[d.type as DealType].short}</span>{d.is_exclusive ? <span className="inline-flex items-center gap-1 rounded-full bg-ink px-2 py-0.5 text-[11px] font-bold text-white"><Gem className="size-3 text-lime" aria-hidden /> Exclusive</span> : null}</div>
+                    <div className="flex flex-wrap items-center gap-2"><DealStateBadge state={d.state} /><span className="text-xs font-semibold text-muted">{DEAL_TYPE_META[d.type as DealType].short}</span></div>
                     <p className="mt-1 truncate font-bold">{d.title}</p>
                     <p className="truncate text-sm text-muted">{p.headline}{p.original ? ` (reg. ${p.original})` : ""} · ends {formatDateTime(d.ends_at, membership.timezone)}</p>
                   </div>

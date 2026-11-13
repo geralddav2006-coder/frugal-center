@@ -70,7 +70,7 @@ export default async function DealPage({ params }: Props) {
     priceOriginal: price.original,
     savingsLabel,
   };
-  const TypeIcon = d.type === "surplus" ? Package : d.type === "appointment" ? CalendarClock : Clock;
+  const TypeIcon = d.type === "surplus" ? Package : d.type === "appointment" ? CalendarClock : d.type === "exclusive" ? Gem : Clock;
   const directions = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${d.address_line}, ${d.city}, ${d.state} ${d.zip}`)}`;
 
   return (
@@ -93,8 +93,11 @@ export default async function DealPage({ params }: Props) {
         <article className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="lime">{price.badge}</Badge>
-            {d.is_exclusive ? <Badge variant="ink"><Gem className="text-lime" aria-hidden /> Frugal Center exclusive</Badge> : null}
-            <Badge variant="soft"><TypeIcon aria-hidden /> {meta.label}</Badge>
+            {d.type === "exclusive" ? (
+              <Badge variant="ink"><Gem className="text-lime" aria-hidden /> Frugal Center exclusive</Badge>
+            ) : (
+              <Badge variant="soft"><TypeIcon aria-hidden /> {meta.label}</Badge>
+            )}
             <Badge variant="outline">{categoryName(d.category_slug)}</Badge>
           </div>
           <h1 className="mt-3 text-[28px] leading-tight font-extrabold sm:text-4xl">{d.title}</h1>
@@ -110,7 +113,7 @@ export default async function DealPage({ params }: Props) {
             </div>
           </Link>
 
-          {d.is_exclusive ? (
+          {d.type === "exclusive" ? (
             <p className="mt-5 flex items-start gap-2.5 rounded-2xl bg-ink p-4 text-[14px] leading-snug text-white/80">
               <Gem className="mt-0.5 size-4 shrink-0 text-lime" aria-hidden />
               <span><strong className="text-white">Only on Frugal Center.</strong> {d.business_name} offers this deal exclusively through Frugal Center, so you won&apos;t find it on other apps or at the counter.</span>
@@ -135,13 +138,18 @@ export default async function DealPage({ params }: Props) {
               <p className="mt-2 text-[15px]">
                 {d.duration_minutes} minute appointment. Pick one of the specific open times {state.claimable ? "on the right" : "below"} — each is a real slot that opened up.
               </p>
+            ) : d.type === "exclusive" ? (
+              <p className="mt-2 text-[15px]">
+                Valid any time the business is open, through <strong>{formatDateTime(d.ends_at, d.timezone)}</strong>.
+                {left != null ? ` ${left} of ${d.quantity_total} vouchers left.` : ""}
+              </p>
             ) : (
               <p className="mt-2 text-[15px]">
                 Valid <strong>{windowLabel(d)}</strong> only, through {formatDateTime(d.ends_at, d.timezone)}.
                 {left != null ? ` ${left} vouchers left.` : ""}
               </p>
             )}
-            {state.claimable && d.type !== "slow_hours" && new Date(d.type === "appointment" ? (d.next_slot_at ?? d.ends_at) : d.ends_at).getTime() - now < 24 * 3600000 ? (
+            {state.claimable && (d.type === "surplus" || d.type === "appointment") && new Date(d.type === "appointment" ? (d.next_slot_at ?? d.ends_at) : d.ends_at).getTime() - now < 24 * 3600000 ? (
               <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-bold">
                 <Clock className="size-3.5" aria-hidden /> {d.type === "appointment" ? "Next slot in" : "Ends in"} {timeLeft(d.type === "appointment" ? d.next_slot_at! : d.ends_at)}
               </p>

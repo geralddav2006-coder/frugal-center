@@ -1,7 +1,7 @@
 import { requireBusiness } from "@/server/auth";
 import { getDb } from "@/server/db";
 import { getMerchantBusiness } from "@/server/services/merchant";
-import type { DealType } from "@/lib/deals";
+import { DEAL_TYPES, type DealType } from "@/lib/deals";
 import { DealEditor } from "@/components/merchant/deal-editor";
 import { newEditorValue } from "@/components/merchant/editor-values";
 
@@ -11,7 +11,7 @@ export default async function NewDealPage({ searchParams }: { searchParams: Prom
   const { membership } = await requireBusiness("/dashboard/deals/new", ["owner", "manager"]);
   const { type } = await searchParams;
   const biz = await getMerchantBusiness(await getDb(), membership.business_id);
-  const t = (["surplus", "appointment", "slow_hours"] as DealType[]).includes(type as DealType) ? (type as DealType) : null;
+  const t = DEAL_TYPES.includes(type as DealType) ? (type as DealType) : null;
   return (
     <DealEditor
       initial={newEditorValue(t, biz.timezone)}

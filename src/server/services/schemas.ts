@@ -63,7 +63,6 @@ const common = {
   redemption_instructions: optionalText(1000),
   restrictions: optionalText(1000),
   per_customer_limit: z.coerce.number().int().min(1).max(10).default(1),
-  is_exclusive: z.boolean().default(false),
 };
 
 export const surplusSchema = z.object({
@@ -104,7 +103,21 @@ export const slowHoursSchema = z.object({
   ends_at: localDateTime,
 });
 
-export const dealSchema = z.discriminatedUnion("type", [surplusSchema, appointmentSchema, slowHoursSchema]);
+/** A general promotional discount offered only on Frugal Center. */
+export const exclusiveSchema = z.object({
+  type: z.literal("exclusive"),
+  ...common,
+  discount_kind: z.enum(["percent", "amount_off", "fixed_price"]),
+  percent_off: z.coerce.number().int().min(1).max(100).optional().nullable(),
+  amount_off: money.optional().nullable(),
+  original_price: money.optional().nullable(),
+  deal_price: money.optional().nullable(),
+  quantity_total: z.coerce.number().int().min(1).max(10000).optional().nullable(),
+  starts_at: localDateTime,
+  ends_at: localDateTime,
+});
+
+export const dealSchema = z.discriminatedUnion("type", [surplusSchema, appointmentSchema, slowHoursSchema, exclusiveSchema]);
 export type DealInput = z.input<typeof dealSchema>;
 export type DealParsed = z.output<typeof dealSchema>;
 

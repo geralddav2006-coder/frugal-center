@@ -17,7 +17,7 @@ const BENEFITS = [
   { icon: Percent, title: "No sales commissions", body: "Customers pay you directly. You keep 100% of every sale." },
   { icon: MapPin, title: "Reach nearby customers", body: "Your deals show up for people within minutes of your door." },
   { icon: Bell, title: "Notify your followers", body: "Followers get an alert the moment you publish a new deal." },
-  { icon: Gem, title: "Feature exclusives", body: "Mark a deal Frugal Center exclusive to earn a badge and a spot in the Exclusives section." },
+  { icon: Gem, title: "Run exclusive promos", body: "Post a discount only on Frugal Center. It gets an Exclusive badge and its own section." },
   { icon: QrCode, title: "QR and code redemption", body: "Scan with your phone camera or type the code. Secure and instant." },
   { icon: BarChart3, title: "Performance analytics", body: "See claims, redemptions and confirmed revenue for every offer." },
   { icon: Smartphone, title: "No special hardware", body: "Runs in the browser on the phone or tablet you already have." },
@@ -127,12 +127,13 @@ export default async function ForBusinessPage() {
             ))}
           </ol>
 
-          <h3 className="mt-12 text-center text-xl font-extrabold sm:text-left">Three ways to fill the gaps</h3>
-          <div className="no-scrollbar -mx-5 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0">
+          <h3 className="mt-12 text-center text-xl font-extrabold sm:text-left">Four kinds of deals</h3>
+          <div className="no-scrollbar -mx-5 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 lg:grid-cols-4 sm:overflow-visible sm:px-0">
             {[
               { icon: Package, t: "Surplus inventory", b: "Bakery leftovers, extra flowers, overstock retail. Set a quantity and a pickup window." },
               { icon: CalendarClock, t: "Canceled appointments", b: "Nail, hair, massage and training slots. List the exact open times and capacity." },
               { icon: Clock, t: "Slow business hours", b: "Afternoon lulls and off-peak periods. Choose days, hours and a discount." },
+              { icon: Gem, t: "Frugal Center exclusives", b: "Any promotional discount you want to run, offered only on Frugal Center. Grand openings, seasonal sales, new-customer offers." },
             ].map(({ icon: Icon, t, b }) => (
               <div key={t} className="w-[78%] shrink-0 snap-center rounded-[var(--radius-card)] border border-line bg-white p-5 sm:w-auto sm:p-6">
                 <span className="grid size-11 place-items-center rounded-xl bg-lime-soft"><Icon className="size-5 text-lime-ink" aria-hidden /></span>

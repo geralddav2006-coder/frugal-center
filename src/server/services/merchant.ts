@@ -159,7 +159,6 @@ export interface MerchantDeal {
   quantity_total: number | null;
   claimed_count: number;
   per_customer_limit: number;
-  is_exclusive: boolean;
   starts_at: Date;
   ends_at: Date;
   published_at: Date | null;
@@ -190,7 +189,7 @@ const STATE_SQL = `case
 
 const MERCHANT_DEAL_SELECT = `
   select d.id, d.type, d.status, d.title, d.images, d.discount_kind, d.original_price_cents, d.deal_price_cents,
-    d.percent_off, d.amount_off_cents, d.quantity_total, d.claimed_count, d.per_customer_limit, d.is_exclusive, d.starts_at, d.ends_at,
+    d.percent_off, d.amount_off_cents, d.quantity_total, d.claimed_count, d.per_customer_limit, d.starts_at, d.ends_at,
     d.published_at, d.followers_notified_at, d.moderation_removed_at, d.description, d.redemption_instructions,
     d.restrictions, d.duration_minutes, d.recurring_days,
     to_char(d.window_start, 'HH24:MI') as window_start, to_char(d.window_end, 'HH24:MI') as window_end,
@@ -226,7 +225,6 @@ interface NormalizedDeal {
   redemption_instructions: string | null;
   restrictions: string | null;
   per_customer_limit: number;
-  is_exclusive: boolean;
   discount_kind: string;
   original_price_cents: number | null;
   deal_price_cents: number | null;
@@ -254,7 +252,6 @@ function normalizeDeal(raw: DealInput, tz: string): NormalizedDeal {
     redemption_instructions: d.redemption_instructions,
     restrictions: d.restrictions,
     per_customer_limit: d.per_customer_limit,
-    is_exclusive: d.is_exclusive,
     duration_minutes: null as number | null,
     recurring_days: null as number[] | null,
     window_start: null as string | null,
@@ -301,6 +298,7 @@ function normalizeDeal(raw: DealInput, tz: string): NormalizedDeal {
       ends_at: slots.at(-1)!.starts_at,
     };
   } else {
+    // Off-peak offers and exclusives: percent off, amount off, or a special price.
     let pricing: Pick<NormalizedDeal, "original_price_cents" | "deal_price_cents" | "percent_off" | "amount_off_cents">;
     if (d.discount_kind === "percent") {
       if (!d.percent_off) throw new DomainError("invalid", "Enter the percentage off.");
@@ -312,18 +310,22 @@ function normalizeDeal(raw: DealInput, tz: string): NormalizedDeal {
       checkFixed(d.original_price, d.deal_price);
       pricing = { original_price_cents: d.original_price!, deal_price_cents: d.deal_price!, percent_off: null, amount_off_cents: null };
     }
-    if (d.window_end <= d.window_start) throw new DomainError("invalid", "The end time must be after the start time.");
-    out = {
-      ...base,
-      ...pricing,
-      discount_kind: d.discount_kind,
-      quantity_total: d.quantity_total ?? null,
-      recurring_days: [...new Set(d.recurring_days)].sort(),
-      window_start: d.window_start,
-      window_end: d.window_end,
-      starts_at: zonedInputToDate(d.starts_at, tz),
-      ends_at: zonedInputToDate(d.ends_at, tz),
-    };
+    const dates = { starts_at: zonedInputToDate(d.starts_at, tz), ends_at: zonedInputToDate(d.ends_at, tz) };
+    if (d.type === "exclusive") {
+      out = { ...base, ...pricing, ...dates, discount_kind: d.discount_kind, quantity_total: d.quantity_total ?? null };
+    } else {
+      if (d.window_end <= d.window_start) throw new DomainError("invalid", "The end time must be after the start time.");
+      out = {
+        ...base,
+        ...pricing,
+        ...dates,
+        discount_kind: d.discount_kind,
+        quantity_total: d.quantity_total ?? null,
+        recurring_days: [...new Set(d.recurring_days)].sort(),
+        window_start: d.window_start,
+        window_end: d.window_end,
+      };
+    }
   }
   if (out.ends_at <= out.starts_at) throw new DomainError("invalid", "The end must be after the start.");
   if (out.ends_at.getTime() - out.starts_at.getTime() > MAX_DEAL_DAYS * 86400000) {
@@ -344,13 +346,13 @@ export async function saveDeal(db: Db, userId: string, businessId: string, raw: 
       const [row] = await q.query<{ id: string }>(
         `insert into public.deals (business_id, type, title, description, images, discount_kind, original_price_cents,
            deal_price_cents, percent_off, amount_off_cents, quantity_total, per_customer_limit, starts_at, ends_at,
-           redemption_instructions, restrictions, duration_minutes, recurring_days, window_start, window_end, created_by, is_exclusive)
+           redemption_instructions, restrictions, duration_minutes, recurring_days, window_start, window_end, created_by)
          values ($1, $2::public.deal_type, $3, $4, $5::text[], $6::public.discount_kind, $7, $8, $9, $10, $11, $12,
-           $13::timestamptz, $14::timestamptz, $15, $16, $17, $18::int[], $19::time, $20::time, $21, $22) returning id`,
+           $13::timestamptz, $14::timestamptz, $15, $16, $17, $18::int[], $19::time, $20::time, $21) returning id`,
         [businessId, n.type, n.title, n.description, n.images, n.discount_kind, n.original_price_cents, n.deal_price_cents,
           n.percent_off, n.amount_off_cents, n.quantity_total, n.per_customer_limit, n.starts_at.toISOString(),
           n.ends_at.toISOString(), n.redemption_instructions, n.restrictions, n.duration_minutes, n.recurring_days,
-          n.window_start, n.window_end, userId, n.is_exclusive],
+          n.window_start, n.window_end, userId],
       );
       for (const s of n.slots) {
         await q.query(
@@ -398,13 +400,12 @@ export async function saveDeal(db: Db, userId: string, businessId: string, raw: 
       `update public.deals set title=$2, description=$3, images=$4::text[], discount_kind=$5::public.discount_kind,
          original_price_cents=$6, deal_price_cents=$7, percent_off=$8, amount_off_cents=$9, quantity_total=$10,
          per_customer_limit=$11, starts_at=$12::timestamptz, ends_at=$13::timestamptz, redemption_instructions=$14,
-         restrictions=$15, duration_minutes=$16, recurring_days=$17::int[], window_start=$18::time, window_end=$19::time,
-         is_exclusive=$20
+         restrictions=$15, duration_minutes=$16, recurring_days=$17::int[], window_start=$18::time, window_end=$19::time
        where id = $1`,
       [dealId, n.title, n.description, n.images, n.discount_kind, n.original_price_cents, n.deal_price_cents,
         n.percent_off, n.amount_off_cents, n.quantity_total, n.per_customer_limit, startsAt.toISOString(),
         n.ends_at.toISOString(), n.redemption_instructions, n.restrictions, n.duration_minutes, n.recurring_days,
-        n.window_start, n.window_end, n.is_exclusive],
+        n.window_start, n.window_end],
     );
 
     if (cur.type === "appointment") {
@@ -508,10 +509,10 @@ export async function duplicateDeal(db: Db, userId: string, dealId: string) {
   const [row] = await db.query<{ id: string }>(
     `insert into public.deals (business_id, type, title, description, images, discount_kind, original_price_cents,
        deal_price_cents, percent_off, amount_off_cents, quantity_total, per_customer_limit, starts_at, ends_at,
-       redemption_instructions, restrictions, duration_minutes, recurring_days, window_start, window_end, created_by, duplicated_from, is_exclusive)
+       redemption_instructions, restrictions, duration_minutes, recurring_days, window_start, window_end, created_by, duplicated_from)
      select business_id, type, title, description, images, discount_kind, original_price_cents, deal_price_cents, percent_off,
        amount_off_cents, quantity_total, per_customer_limit, $3::timestamptz, $4::timestamptz, redemption_instructions,
-       restrictions, duration_minutes, recurring_days, window_start, window_end, $2, id, is_exclusive
+       restrictions, duration_minutes, recurring_days, window_start, window_end, $2, id
      from public.deals where id = $1 returning id`,
     [dealId, userId, now.toISOString(), ends.toISOString()],
   );
