@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 export function LogoMark({ className, title = "Frugal Center" }: { className?: string; title?: string }) {
   return (
     <svg viewBox="0 0 100 100" className={cn("size-8 shrink-0 rounded-[22%]", className)} role="img" aria-label={title}>
-      <rect width="100" height="100" fill="#5CE65C" />
+      <rect width="100" height="100" fill="#2EF27A" />
       <g transform="translate(50 50) skewX(-10) translate(-50 -50)" fill="#191919">
         <rect x="29" y="34" width="8.5" height="32" />
         <rect x="29" y="34" width="20" height="8" />

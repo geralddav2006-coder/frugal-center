@@ -71,7 +71,7 @@ export default async function ForBusinessPage() {
 
           {/* Product preview built from real UI pieces (illustrative content) */}
           <div className="relative mx-auto w-full max-w-sm" aria-hidden>
-            <div className="absolute -inset-8 -z-10 rounded-[48px] bg-[radial-gradient(circle_at_70%_30%,#e6fbe3,transparent_60%)]" />
+            <div className="absolute -inset-8 -z-10 rounded-[48px] bg-[radial-gradient(circle_at_70%_30%,#e0fdeb,transparent_60%)]" />
             <div className="rounded-[36px] border-[10px] border-ink bg-white p-4 shadow-[var(--shadow-lift)]">
               <div className="flex items-center justify-between text-xs font-semibold text-muted"><span>Redeem</span><span>Main Street Bakery</span></div>
               <div className="mt-3 rounded-2xl bg-ink p-5 text-white">

@@ -103,7 +103,7 @@ function newDealEmail(a: { businessName: string; title: string; price: string; u
   const html = `<!doctype html><html><body style="margin:0;background:#FAFAF7;font-family:Helvetica,Arial,sans-serif;color:#191919">
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px">
   <table width="100%" style="max-width:520px;background:#fff;border-radius:16px;border:1px solid #F0F1ED" cellpadding="0" cellspacing="0">
-  <tr><td style="padding:28px 28px 8px"><div style="display:inline-block;width:36px;height:36px;border-radius:8px;background:#5CE65C"></div></td></tr>
+  <tr><td style="padding:28px 28px 8px"><div style="display:inline-block;width:36px;height:36px;border-radius:8px;background:#2EF27A"></div></td></tr>
   <tr><td style="padding:8px 28px 0;font-size:14px;color:#6B6E66">New from ${escapeHtml(a.businessName)}</td></tr>
   <tr><td style="padding:6px 28px 0;font-size:24px;font-weight:800;line-height:1.2">${escapeHtml(a.title)}</td></tr>
   <tr><td style="padding:10px 28px 0;font-size:16px;font-weight:700">${escapeHtml(a.price)}</td></tr>

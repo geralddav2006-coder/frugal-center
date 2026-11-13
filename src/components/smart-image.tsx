@@ -26,7 +26,7 @@ export function SmartImage({
   const [failed, setFailed] = useState(false);
   if (!src || failed) {
     return (
-      <div className={cn("absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_30%_20%,#e6fbe3,#f0f1ed_60%)]", className)}>
+      <div className={cn("absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_30%_20%,#e0fdeb,#f0f1ed_60%)]", className)}>
         <div className="flex flex-col items-center gap-1.5 text-muted">
           <ImageOff className="size-5" aria-hidden />
           {fallbackLabel ? <span className="max-w-[80%] truncate text-xs font-semibold">{fallbackLabel}</span> : null}
