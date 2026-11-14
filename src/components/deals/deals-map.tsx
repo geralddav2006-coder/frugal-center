@@ -69,7 +69,7 @@ export function DealsMap({ deals, center, className }: { deals: MapDeal[]; cente
 
   const sel = deals.find((d) => d.id === active);
   return (
-    <div className={cn("relative overflow-hidden", className)}>
+    <div className={cn("relative isolate overflow-hidden", className)}>
       <div ref={el} className="absolute inset-0" role="application" aria-label="Map of nearby deals" />
       {failed ? (
         <p className="absolute top-3 left-1/2 z-[500] -translate-x-1/2 rounded-full bg-white px-4 py-2 text-xs font-semibold shadow">Map tiles couldn&apos;t load. Pins still show deal locations.</p>

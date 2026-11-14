@@ -23,5 +23,5 @@ export function MiniMap({ lat, lng, label }: { lat: number; lng: number; label: 
       map?.remove();
     };
   }, [lat, lng, label]);
-  return <div ref={el} className="absolute inset-0" role="img" aria-label={`Map showing ${label}`} />;
+  return <div ref={el} className="absolute inset-0 isolate" role="img" aria-label={`Map showing ${label}`} />;
 }

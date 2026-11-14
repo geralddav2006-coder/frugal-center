@@ -40,5 +40,5 @@ export function PinPicker({ lat, lng, onChange }: { lat: number; lng: number; on
     api.current?.move(lat, lng);
   }, [lat, lng]);
 
-  return <div ref={el} className="h-56 w-full overflow-hidden rounded-2xl border border-line bg-mist" role="application" aria-label="Map: click to set your business location" />;
+  return <div ref={el} className="isolate h-56 w-full overflow-hidden rounded-2xl border border-line bg-mist" role="application" aria-label="Map: click to set your business location" />;
 }

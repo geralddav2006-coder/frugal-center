@@ -55,9 +55,10 @@ export default async function BusinessPage({ params }: Props) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
       </div>
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="-mt-10 flex flex-col gap-4 sm:-mt-12 sm:flex-row sm:items-end">
-          <BusinessAvatar name={b.name} src={b.logo_url} className="relative size-20 rounded-2xl text-2xl ring-4 ring-white sm:size-24" />
-          <div className="min-w-0 flex-1 sm:pb-1">
+        {/* Only the logo overlaps the cover; the name and details always sit below it. */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+          <BusinessAvatar name={b.name} src={b.logo_url} className="relative z-10 -mt-10 size-20 shrink-0 rounded-2xl text-2xl ring-4 ring-white sm:-mt-12 sm:size-24" />
+          <div className="min-w-0 flex-1 sm:pt-4 sm:pb-1">
             <h1 className="text-3xl font-extrabold sm:text-4xl">{b.name}</h1>
             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
               <Badge variant="soft" size="sm">{categoryName(b.category_slug)}</Badge>
