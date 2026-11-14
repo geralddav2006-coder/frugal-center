@@ -73,10 +73,14 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <Suspense>
             <SearchBox size="hero" className="mt-5 max-w-2xl sm:mt-7" />
           </Suspense>
-          <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 text-[13px] font-semibold text-ink/70" aria-label="Why Frugal Center">
-            {["Free to claim", stats.maxPct >= 10 ? `Up to ${stats.maxPct}% off` : "Exclusive local discounts", "Pay in store"].map((t) => (
-              <li key={t} className="flex items-center gap-1.5">
-                <Check className="size-4 text-lime-ink" strokeWidth={2.75} aria-hidden /> {t}
+          {/* Phones: three equal tiles in one row, so it never wraps 2 + 1. Larger screens: one inline row. */}
+          <ul className="mt-4 grid max-w-2xl grid-cols-3 gap-2 text-[12.5px] leading-tight font-semibold text-ink/75 sm:flex sm:flex-wrap sm:gap-x-4 sm:gap-y-1.5 sm:text-[13px]" aria-label="Why Frugal Center">
+            {["Free to claim", stats.maxPct >= 10 ? `Up to ${stats.maxPct}% off` : "Local discounts", "Pay in store"].map((t) => (
+              <li key={t} className="flex flex-col items-center gap-1 rounded-2xl border border-line bg-white px-1 py-2.5 text-center text-balance sm:flex-row sm:gap-1.5 sm:border-0 sm:bg-transparent sm:p-0 sm:text-left">
+                <span className="grid size-5 place-items-center rounded-full bg-lime-soft sm:contents">
+                  <Check className="size-3.5 text-lime-ink sm:size-4" strokeWidth={2.75} aria-hidden />
+                </span>
+                {t}
               </li>
             ))}
           </ul>
