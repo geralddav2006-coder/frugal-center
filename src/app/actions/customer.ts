@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getDb } from "@/server/db";
 import { getViewer } from "@/server/auth";
@@ -22,6 +23,7 @@ import {
 import { enableSavingsShare, disableSavingsShare } from "@/server/services/savings";
 import { RADIUS_OPTIONS, writeLocationCookie } from "@/server/location";
 import { env } from "@/server/env";
+import { SIGN_COOKIE } from "@/lib/promo";
 
 export async function toggleFavoriteAction(dealId: string, save: boolean) {
   return run(async () => {
@@ -35,7 +37,11 @@ export async function toggleFavoriteAction(dealId: string, save: boolean) {
 export async function toggleFollowAction(businessId: string, follow: boolean) {
   return run(async () => {
     const v = requireSignedIn(await getViewer());
-    await setFollow(await getDb(), v.id, businessId, follow);
+    // Credit the follow to the business's in-store sign if the viewer just scanned it.
+    const jar = await cookies();
+    const fromSign = follow && jar.get(SIGN_COOKIE)?.value === businessId;
+    await setFollow(await getDb(), v.id, businessId, follow, fromSign ? "sign" : null);
+    if (fromSign) jar.delete(SIGN_COOKIE);
     revalidatePath("/", "layout");
     return { following: follow };
   });

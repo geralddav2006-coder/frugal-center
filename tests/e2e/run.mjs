@@ -311,6 +311,33 @@ async function main() {
     await ctx.close();
   });
 
+  await step("15. In-store sign: scan, sign up and follow in one go; the owner sees it on Promote", async () => {
+    await owner.goto(`${BASE}/dashboard/promote`);
+    const tiles = async () => (await owner.locator("p.text-3xl").allInnerTexts()).map(Number);
+    const [scans0, fromSigns0] = await tiles();
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    const p = await ctx.newPage();
+    await p.goto(`${BASE}/f/main-street-bakery?p=counter`);
+    await p.getByText("Thanks for scanning!").waitFor();
+    await p.getByRole("link", { name: "Sign up free to follow" }).click();
+    await p.waitForURL(/\/signup/);
+    await p.fill("input[name=fullName]", "Sam Scanner");
+    await p.fill("input[name=email]", `scan-${Date.now()}@e2e.test`);
+    await p.fill("input[name=password]", PASSWORD);
+    await p.click("button[type=submit]");
+    await p.waitForURL(/\/business\/main-street-bakery/, { timeout: 60000 });
+    await p.getByText("You're following Main Street Bakery.").waitFor({ timeout: 20000 });
+    await ctx.close();
+    await owner.goto(`${BASE}/dashboard/promote`);
+    const [scans1, fromSigns1] = await tiles();
+    assert.equal(scans1, scans0 + 1);
+    assert.equal(fromSigns1, fromSigns0 + 1);
+    const png = await owner.request.get(`${BASE}/api/promo/qr?p=link`);
+    assert.equal(png.headers()["content-type"], "image/png");
+    await owner.goto(`${BASE}/print/promo/counter`);
+    await owner.getByRole("button", { name: /Print \/ Save as PDF/ }).waitFor();
+  });
+
   await step("Security: unauthorized access is blocked", async () => {
     await customer.goto(`${BASE}/admin`);
     assert.equal(new URL(customer.url()).pathname, "/");

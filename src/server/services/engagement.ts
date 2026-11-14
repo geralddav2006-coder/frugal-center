@@ -3,14 +3,15 @@ import { audit, DomainError, rateLimit } from "./common";
 
 const UUID = /^[0-9a-f-]{36}$/i;
 
-export async function setFollow(q: Queryable, userId: string, businessId: string, follow: boolean) {
+/** source: "sign" when the follow came from scanning one of the business's printed signs. */
+export async function setFollow(q: Queryable, userId: string, businessId: string, follow: boolean, source: "sign" | null = null) {
   if (!UUID.test(businessId)) throw new DomainError("invalid", "Invalid business.");
   if (follow) {
     const [b] = await q.query(`select 1 from public.businesses where id = $1 and suspended_at is null`, [businessId]);
     if (!b) throw new DomainError("not_found", "Business not found.");
     await q.query(
-      `insert into public.follows (user_id, business_id) values ($1, $2) on conflict do nothing`,
-      [userId, businessId],
+      `insert into public.follows (user_id, business_id, source) values ($1, $2, $3) on conflict do nothing`,
+      [userId, businessId, source],
     );
   } else {
     await q.query(`delete from public.follows where user_id = $1 and business_id = $2`, [userId, businessId]);

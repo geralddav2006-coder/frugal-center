@@ -12,6 +12,7 @@ export function FollowButton({
   initial,
   signedIn,
   size = "default",
+  variant,
   className,
 }: {
   businessId: string;
@@ -19,6 +20,7 @@ export function FollowButton({
   initial: boolean;
   signedIn: boolean;
   size?: "sm" | "default";
+  variant?: "default" | "lime";
   className?: string;
 }) {
   const router = useRouter();
@@ -28,7 +30,7 @@ export function FollowButton({
     <Button
       type="button"
       size={size}
-      variant={following ? "outline" : "default"}
+      variant={following ? "outline" : (variant ?? "default")}
       aria-pressed={following}
       disabled={pending}
       className={className}

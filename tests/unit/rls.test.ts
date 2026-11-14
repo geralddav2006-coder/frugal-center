@@ -28,6 +28,26 @@ beforeAll(async () => {
 });
 
 describe("row level security", () => {
+  it("sign scans are private to the business, and customers can't fake where a follow came from", async () => {
+    const bakery = businessIds["main-street-bakery"]!;
+    await pg.query(`insert into public.promo_scans (business_id, piece) values ($1, 'counter'), ($2, 'tent')`, [bakery, businessIds["sakura-bowl"]]);
+    const own = await as<{ business_id: string }>("authenticated", ids.owner!, `select business_id from public.promo_scans`);
+    expect(own.length).toBeGreaterThan(0);
+    expect(own.every((r) => r.business_id === bakery)).toBe(true);
+    expect(await as("authenticated", ids.customer!, `select * from public.promo_scans`)).toHaveLength(0);
+    await expect(as("anon", null, `select * from public.promo_scans`)).rejects.toThrow();
+    await expect(as("authenticated", ids.owner!, `insert into public.promo_scans (business_id, piece) values ($1, 'counter')`, [bakery])).rejects.toThrow();
+    // Following directly through the API still works, but only the server can credit a sign.
+    await as("authenticated", ids.customer!, `insert into public.follows (user_id, business_id) values ($1, $2) on conflict do nothing`, [ids.customer, businessIds["clay-hour-studio"]]);
+    await expect(
+      as("authenticated", ids.customer!, `insert into public.follows (user_id, business_id, source) values ($1, $2, 'sign')`, [ids.customer, businessIds["boulder-yard"]]),
+    ).rejects.toThrow();
+    // Business settings change only through the server: a direct update matches no rows.
+    expect(await as("authenticated", ids.owner!, `update public.businesses set show_public_stats = false where id = $1 returning id`, [bakery])).toHaveLength(0);
+    const [biz] = (await pg.query<{ show_public_stats: boolean }>(`select show_public_stats from public.businesses where id = $1`, [bakery])).rows;
+    expect(biz!.show_public_stats).toBe(true);
+  });
+
   it("anon can browse published deals and businesses but not drafts or private tables", async () => {
     await pg.query(`update public.deals set status = 'draft' where id = $1`, [dealIds["sakura-bowl/dinner"]]);
     const deals = await as<{ id: string }>("anon", null, `select id from public.deals`);
