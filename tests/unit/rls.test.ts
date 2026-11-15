@@ -42,10 +42,6 @@ describe("row level security", () => {
     await expect(
       as("authenticated", ids.customer!, `insert into public.follows (user_id, business_id, source) values ($1, $2, 'sign')`, [ids.customer, businessIds["boulder-yard"]]),
     ).rejects.toThrow();
-    // Business settings change only through the server: a direct update matches no rows.
-    expect(await as("authenticated", ids.owner!, `update public.businesses set show_public_stats = false where id = $1 returning id`, [bakery])).toHaveLength(0);
-    const [biz] = (await pg.query<{ show_public_stats: boolean }>(`select show_public_stats from public.businesses where id = $1`, [bakery])).rows;
-    expect(biz!.show_public_stats).toBe(true);
   });
 
   it("anon can browse published deals and businesses but not drafts or private tables", async () => {

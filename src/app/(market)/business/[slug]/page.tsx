@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { BadgeCheck, Clock, Globe, Mail, MapPin, Navigation, Phone, Sparkles, Users } from "lucide-react";
+import { Clock, Globe, Mail, MapPin, Navigation, Phone, Users } from "lucide-react";
 import { getViewer } from "@/server/auth";
 import { getDb } from "@/server/db";
 import { getViewerLocation } from "@/server/location";
@@ -18,7 +18,7 @@ import { MiniMap } from "@/components/mini-map";
 import { ReportDialog } from "@/components/report-dialog";
 import { Badge } from "@/components/ui/badge";
 import { SignWelcome } from "@/components/business/sign-welcome";
-import { SIGN_COOKIE, publicStats } from "@/lib/promo";
+import { SIGN_COOKIE } from "@/lib/promo";
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | undefined>> };
 const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
@@ -49,7 +49,6 @@ export default async function BusinessPage({ params, searchParams }: Props) {
   // Auto-follow only right after signing up from the scan banner (the scan cookie proves they came from a sign).
   const scanned = (await cookies()).get(SIGN_COOKIE)?.value === b.id;
   const autoFollow = fromSign && sp.follow === "1" && !!viewer && !b.viewer_follows && scanned;
-  const stats = publicStats(b);
   const today = DAY_KEYS[zonedDayAndMinutes(new Date(), b.timezone).dow]!;
   const { minutes } = zonedDayAndMinutes(new Date(), b.timezone);
   const todays = b.hours[today];
@@ -74,14 +73,7 @@ export default async function BusinessPage({ params, searchParams }: Props) {
               <span className="flex items-center gap-1"><MapPin className="size-3.5" aria-hidden /> {b.city}{formatDistance(b.distance_miles) ? ` · ${formatDistance(b.distance_miles)}` : ""}</span>
               <span className="flex items-center gap-1"><Users className="size-3.5" aria-hidden /> {pluralize(b.follower_count, "follower")}</span>
               <span className={openNow ? "font-semibold text-lime-ink" : ""}>{openNow ? "Open now" : "Closed now"}</span>
-              {stats.isNew ? <Badge variant="success" size="sm"><Sparkles aria-hidden /> New on Frugal Center</Badge> : null}
             </div>
-            {stats.redeemed ? (
-              <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-                <span className="flex items-center gap-1.5 font-bold text-lime-ink"><BadgeCheck className="size-4" aria-hidden /> {stats.redeemed} deals redeemed</span>
-                {stats.saved ? <><span className="text-muted" aria-hidden>·</span><span className="text-muted">Customers saved <strong className="text-ink">{stats.saved}</strong></span></> : null}
-              </p>
-            ) : null}
           </div>
           {fromSign && !b.viewer_follows ? null : (
             <FollowButton businessId={b.id} businessName={b.name} initial={b.viewer_follows} signedIn={!!viewer} size="default" className="sm:mb-1" />

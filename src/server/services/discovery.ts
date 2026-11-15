@@ -338,18 +338,13 @@ export interface PublicBusiness {
   viewer_follows: boolean;
   viewer_notify: boolean;
   created_at: Date;
-  show_public_stats: boolean;
-  redeemed_count: number;
-  saved_cents: number;
 }
 
 export async function getBusinessBySlug(db: Queryable, slug: string, loc: GeoPoint, viewerId: string | null) {
   const [biz] = await db.query<PublicBusiness>(
     `select b.id, b.slug, b.name, b.category_slug, b.description, b.logo_url, b.cover_url, b.address_line,
-       b.city, b.state, b.zip, b.lat, b.lng, b.phone, b.website, b.contact_email, b.timezone, b.hours, b.created_at, b.show_public_stats,
+       b.city, b.state, b.zip, b.lat, b.lng, b.phone, b.website, b.contact_email, b.timezone, b.hours, b.created_at,
        (select count(*)::int from public.follows f where f.business_id = b.id) as follower_count,
-       (select count(*)::int from public.redemptions r where r.business_id = b.id) as redeemed_count,
-       (select coalesce(sum(r.savings_cents), 0)::int from public.redemptions r where r.business_id = b.id) as saved_cents,
        public.distance_miles($2, $3, b.lat, b.lng) as distance_miles,
        exists (select 1 from public.follows f where f.business_id = b.id and f.user_id = $4::uuid) as viewer_follows,
        coalesce((select f.notify from public.follows f where f.business_id = b.id and f.user_id = $4::uuid), true) as viewer_notify

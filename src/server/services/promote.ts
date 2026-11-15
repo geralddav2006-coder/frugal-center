@@ -1,7 +1,6 @@
 import type { Queryable } from "../db/types";
 import type { DealType } from "@/lib/deals";
 import { PROMO_PIECES, type PromoPiece } from "@/lib/promo";
-import { requireMember } from "./redemption";
 
 export interface PromoBusiness {
   id: string;
@@ -63,9 +62,4 @@ export async function getPromoStats(q: Queryable, businessId: string): Promise<P
   const byPiece30: Record<string, number> = Object.fromEntries([...PROMO_PIECES, "other"].map((p) => [p, 0]));
   for (const p of pieces) byPiece30[p.piece] = p.n;
   return { ...row!, byPiece30 };
-}
-
-export async function setShowPublicStats(q: Queryable, userId: string, businessId: string, show: boolean) {
-  await requireMember(q, userId, businessId, ["owner", "manager"]);
-  await q.query(`update public.businesses set show_public_stats = $2 where id = $1`, [businessId, show]);
 }

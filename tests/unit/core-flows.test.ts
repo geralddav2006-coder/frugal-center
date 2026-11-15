@@ -10,9 +10,7 @@ import { saveDeal, publishDeal, pauseDeal, createBusiness, duplicateDeal, endDea
 import { activateDemoSubscription, cancelDemoSubscription } from "@/server/services/billing";
 import { setFollow, setFollowNotify, updatePreferences } from "@/server/services/engagement";
 import { DomainError, normalizeManualCode, extractQrToken } from "@/server/services/common";
-import { getPromoStats, recordPromoScan, setShowPublicStats } from "@/server/services/promote";
-import { getBusinessBySlug } from "@/server/services/discovery";
-import { publicStats, roundCount, roundSavings } from "@/lib/promo";
+import { getPromoStats, recordPromoScan } from "@/server/services/promote";
 import { dateToZonedInput, zonedDayAndMinutes } from "@/lib/time";
 
 const AUSTIN = { lat: 30.2672, lng: -97.7431 };
@@ -415,22 +413,7 @@ describe("subscriptions gate publishing", () => {
   });
 });
 
-describe("promotion and public stats", () => {
-  it("rounds public stats and only shows them past the threshold", () => {
-    expect(roundCount(9)).toBeNull();
-    expect(roundCount(10)).toBe("10+");
-    expect(roundCount(137)).toBe("100+");
-    expect(roundCount(2600)).toBe("2,500+");
-    expect(roundSavings(9900)).toBeNull();
-    expect(roundSavings(12345)).toBe("$100+");
-    expect(roundSavings(123456)).toBe("$1,200+");
-    const old = new Date(Date.now() - 400 * 86400000);
-    expect(publicStats({ show_public_stats: true, redeemed_count: 4, saved_cents: 5000, created_at: new Date() })).toEqual({ redeemed: null, saved: null, isNew: true });
-    expect(publicStats({ show_public_stats: true, redeemed_count: 4, saved_cents: 5000, created_at: old }).isNew).toBe(false);
-    expect(publicStats({ show_public_stats: true, redeemed_count: 140, saved_cents: 150000, created_at: old })).toEqual({ redeemed: "100+", saved: "$1,500+", isNew: false });
-    expect(publicStats({ show_public_stats: false, redeemed_count: 140, saved_cents: 150000, created_at: old }).redeemed).toBeNull();
-  });
-
+describe("promotion", () => {
   it("counts sign scans and credits followers who came from a sign", async () => {
     const biz = businessIds["clay-hour-studio"]!;
     const before = await getPromoStats(db, biz);
@@ -449,16 +432,6 @@ describe("promotion and public stats", () => {
     expect(after.followers).toBe(before.followers + 2);
   });
 
-  it("shows rounded redemption stats on the profile and lets owners hide them", async () => {
-    const { business } = (await getBusinessBySlug(db, "main-street-bakery", AUSTIN, null))!;
-    expect(business.redeemed_count).toBeGreaterThanOrEqual(10);
-    expect(publicStats(business).redeemed).toMatch(/\+$/);
-    await expectError(setShowPublicStats(db, ids.staff!, bakery, false), "forbidden");
-    await setShowPublicStats(db, ids.owner!, bakery, false);
-    const hidden = (await getBusinessBySlug(db, "main-street-bakery", AUSTIN, null))!.business;
-    expect(publicStats(hidden).redeemed).toBeNull();
-    await setShowPublicStats(db, ids.owner!, bakery, true);
-  });
 });
 
 describe("codes", () => {

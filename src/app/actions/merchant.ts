@@ -24,7 +24,6 @@ import {
 import type { BusinessInput, DealInput } from "@/server/services/schemas";
 import { confirmRedemption, lookupVoucher, requireMember, type RedeemMethod } from "@/server/services/redemption";
 import { dispatchNewDeal } from "@/server/services/notify";
-import { setShowPublicStats } from "@/server/services/promote";
 import {
   activateDemoSubscription,
   cancelDemoSubscription,
@@ -74,15 +73,6 @@ export async function updateBusinessAction(input: BusinessInput) {
     await updateBusiness(db, viewer.id, businessId, input);
     revalidatePath("/", "layout");
     return {};
-  });
-}
-
-export async function setPublicStatsAction(show: boolean) {
-  return run(async () => {
-    const { viewer, db, businessId } = await ctx(["owner", "manager"]);
-    await setShowPublicStats(db, viewer.id, businessId, show);
-    revalidatePath("/", "layout");
-    return { show };
   });
 }
 
