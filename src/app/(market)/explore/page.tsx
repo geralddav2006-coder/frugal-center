@@ -7,7 +7,7 @@ import { getDb } from "@/server/db";
 import { getViewerLocation } from "@/server/location";
 import { listLiveDeals, type SortKey } from "@/server/services/discovery";
 import { CATEGORIES, DEAL_TYPES, categoryName, priceDisplay, type DealType } from "@/lib/deals";
-import { formatDistance, pluralize } from "@/lib/utils";
+import { formatDistance, pluralize, RADIUS_MILES } from "@/lib/utils";
 import { DealCard } from "@/components/deals/deal-card";
 import { CategoryBar } from "@/components/deals/category-bar";
 import { ViewToggle } from "@/components/deals/view-toggle";
@@ -28,7 +28,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
   const category = CATEGORIES.some((c) => c.slug === sp.category) ? sp.category : undefined;
   const sort = (["nearest", "ending", "newest", "discount"] as SortKey[]).includes(sp.sort as SortKey) ? (sp.sort as SortKey) : "nearest";
   const type = DEAL_TYPES.includes(sp.type as DealType) ? (sp.type as DealType) : undefined;
-  const radius = [1, 3, 5, 10, 25].includes(Number(sp.radius)) ? Number(sp.radius) : loc.radius;
+  const radius = RADIUS_MILES.includes(Number(sp.radius)) ? Number(sp.radius) : loc.radius;
   const maxPrice = [10, 25, 50].includes(Number(sp.maxPrice)) ? Number(sp.maxPrice) * 100 : undefined;
   const view = sp.view === "map" ? "map" : "list";
 

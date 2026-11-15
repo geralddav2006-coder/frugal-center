@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
-  BarChart3, CreditCard, LayoutDashboard, Megaphone, Menu, PlusCircle, ScanLine, Settings, Store, Tags, Users, X,
+  BarChart3, CreditCard, LayoutDashboard, Megaphone, Menu, PlusCircle, ScanLine, Store, Tags, X,
 } from "lucide-react";
 import { Dialog as D } from "radix-ui";
 import { cn } from "@/lib/utils";
@@ -15,12 +15,10 @@ export const NAV = [
   { href: "/dashboard/deals", label: "My Deals", icon: Tags, roles: ["owner", "manager", "staff"] },
   { href: "/dashboard/deals/new", label: "Create Deal", icon: PlusCircle, roles: ["owner", "manager"] },
   { href: "/dashboard/redeem", label: "Redeem", icon: ScanLine, roles: ["owner", "manager", "staff"] },
-  { href: "/dashboard/followers", label: "Followers", icon: Users, roles: ["owner", "manager"] },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, roles: ["owner", "manager"] },
   { href: "/dashboard/promote", label: "Promote", icon: Megaphone, roles: ["owner", "manager"] },
-  { href: "/dashboard/profile", label: "Business Profile", icon: Store, roles: ["owner", "manager"] },
+  { href: "/dashboard/profile", label: "Profile & Team", icon: Store, roles: ["owner", "manager"] },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCard, roles: ["owner"] },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings, roles: ["owner", "manager"] },
 ] as const;
 
 function isActive(pathname: string, href: string) {

@@ -22,6 +22,7 @@ import {
 } from "@/server/services/engagement";
 import { enableSavingsShare, disableSavingsShare } from "@/server/services/savings";
 import { RADIUS_OPTIONS, writeLocationCookie } from "@/server/location";
+import { areaLabel } from "@/lib/utils";
 import { env } from "@/server/env";
 import { SIGN_COOKIE } from "@/lib/promo";
 
@@ -84,14 +85,14 @@ export async function setLocationAction(input: { zip?: string; lat?: number; lng
     if (input.zip) {
       const zip = input.zip.trim();
       if (!/^\d{5}$/.test(zip)) throw new DomainError("invalid", "Enter a 5-digit ZIP code.");
-      const [area] = await db.query(`select * from public.launch_areas where zip = $1`, [zip]);
+      const [area] = await db.query<{ lat: number; lng: number; neighborhood: string; city: string }>(`select * from public.launch_areas where zip = $1`, [zip]);
       if (!area) {
         throw new DomainError(
           "not_launched",
-          "Frugal Center is launching in Austin first, and we're not in that ZIP yet. Pick an Austin neighborhood or use your current location.",
+          "Frugal Center is starting in Dracut and nearby towns, and we're not in that ZIP yet. Pick a town from the list or use your current location.",
         );
       }
-      loc = { lat: area.lat, lng: area.lng, label: `${area.neighborhood}, ${area.city}`, zip, source: "zip" };
+      loc = { lat: area.lat, lng: area.lng, label: areaLabel(area), zip, source: "zip" };
     } else if (typeof input.lat === "number" && typeof input.lng === "number" && Math.abs(input.lat) <= 90 && Math.abs(input.lng) <= 180) {
       loc = { lat: input.lat, lng: input.lng, label: "Current location", zip: null, source: "gps" };
     } else {

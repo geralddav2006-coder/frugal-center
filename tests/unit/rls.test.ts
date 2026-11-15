@@ -29,7 +29,7 @@ beforeAll(async () => {
 
 describe("row level security", () => {
   it("sign scans are private to the business, and customers can't fake where a follow came from", async () => {
-    const bakery = businessIds["main-street-bakery"]!;
+    const bakery = businessIds["broadway-bakery"]!;
     await pg.query(`insert into public.promo_scans (business_id, piece) values ($1, 'counter'), ($2, 'tent')`, [bakery, businessIds["sakura-bowl"]]);
     const own = await as<{ business_id: string }>("authenticated", ids.owner!, `select business_id from public.promo_scans`);
     expect(own.length).toBeGreaterThan(0);
@@ -72,7 +72,7 @@ describe("row level security", () => {
     await expect(
       as("authenticated", ids.customer!, `insert into public.claims (deal_id, business_id, user_id, code, qr_token, expires_at, terms)
         values ($1, $2, $3, 'AAAA-BBBB', repeat('x', 43), now() + interval '1 day', '{}')`,
-        [dealIds["main-street-bakery/pastry-box"], businessIds["main-street-bakery"], ids.customer]),
+        [dealIds["broadway-bakery/pastry-box"], businessIds["broadway-bakery"], ids.customer]),
     ).rejects.toThrow();
     const updated = await as("authenticated", ids.customer!, `update public.claims set status = 'redeemed', redeemed_at = now() where user_id = $1 returning id`, [ids.customer]);
     expect(updated).toHaveLength(0);
@@ -90,8 +90,8 @@ describe("row level security", () => {
   it("business staff see their business's claims but not other businesses'", async () => {
     const rows = await as<{ business_id: string }>("authenticated", ids.staff!, `select business_id from public.claims`);
     expect(rows.length).toBeGreaterThan(0);
-    expect(rows.every((r) => r.business_id === businessIds["main-street-bakery"])).toBe(true);
+    expect(rows.every((r) => r.business_id === businessIds["broadway-bakery"])).toBe(true);
     const subs = await as<{ business_id: string }>("authenticated", ids.staff!, `select business_id from public.business_subscriptions`);
-    expect(subs.map((s) => s.business_id)).toEqual([businessIds["main-street-bakery"]]);
+    expect(subs.map((s) => s.business_id)).toEqual([businessIds["broadway-bakery"]]);
   });
 });

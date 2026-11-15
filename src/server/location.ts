@@ -1,6 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
 import type { Viewer } from "./auth";
+import { RADIUS_MILES } from "@/lib/utils";
 
 export interface ViewerLocation {
   lat: number;
@@ -12,13 +13,13 @@ export interface ViewerLocation {
 }
 
 export const LOCATION_COOKIE = "fc_loc";
-export const RADIUS_OPTIONS = [1, 3, 5, 10, 25];
+export const RADIUS_OPTIONS = RADIUS_MILES;
 
 export const DEFAULT_LOCATION: ViewerLocation = {
-  lat: 30.2672,
-  lng: -97.7431,
-  label: "Downtown Austin",
-  zip: "78701",
+  lat: 42.6708,
+  lng: -71.3028,
+  label: "Dracut Center",
+  zip: "01826",
   radius: 10,
   source: "default",
 };

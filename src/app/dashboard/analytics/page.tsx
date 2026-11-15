@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, BellOff, Users } from "lucide-react";
 import { requireBusiness } from "@/server/auth";
 import { getDb } from "@/server/db";
-import { getAnalytics, type Range } from "@/server/services/merchant";
+import { getAnalytics, listFollowers, type Range } from "@/server/services/merchant";
 import { DEAL_TYPE_META, type DealType } from "@/lib/deals";
-import { cn, formatMoney } from "@/lib/utils";
+import { cn, formatMoney, privateName } from "@/lib/utils";
+import { formatDate } from "@/lib/time";
 import { LineChart } from "@/components/charts/line-chart";
 import { DealStateBadge } from "@/components/merchant/deal-state-badge";
 import { EmptyState } from "@/components/empty-state";
@@ -23,7 +24,11 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
   const { membership } = await requireBusiness("/dashboard/analytics", ["owner", "manager"]);
   const { range: raw } = await searchParams;
   const range = (RANGES.some((r) => r.key === raw) ? raw : "30d") as Range;
-  const { totals, daily, byOffer } = await getAnalytics(await getDb(), membership.business_id, range);
+  const db = await getDb();
+  const [{ totals, daily, byOffer }, followers] = await Promise.all([
+    getAnalytics(db, membership.business_id, range),
+    listFollowers(db, membership.business_id),
+  ]);
   const conversion = totals.claims ? Math.round((totals.redemptions / totals.claims) * 100) : null;
   const kpis = [
     { label: "Active offers", value: totals.active_offers, note: "right now" },
@@ -117,6 +122,29 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
         ) : (
           <p className="px-6 pb-6 text-sm text-muted">No published offers yet.</p>
         )}
+      </section>
+
+      <section id="followers" className="mt-6 scroll-mt-24 rounded-[var(--radius-card)] border border-line bg-white">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 px-5 pt-5 pb-3 sm:px-6">
+          <h2 className="text-lg font-extrabold">Followers <span className="text-muted tabular">{followers.length}</span></h2>
+          <p className="text-sm text-muted">{followers.filter((f) => f.notify).length} get notified when you post a deal</p>
+        </div>
+        {followers.length ? (
+          <ul className="divide-y divide-line border-t border-line">
+            {followers.map((f, i) => (
+              <li key={i} className="flex items-center justify-between gap-3 px-5 py-3 text-[15px] sm:px-6">
+                <span className="font-semibold">{privateName(f.full_name)}</span>
+                <span className="flex items-center gap-3 text-sm text-muted">
+                  {!f.notify ? <span className="flex items-center gap-1"><BellOff className="size-3.5" aria-hidden /> Muted</span> : null}
+                  Since {formatDate(f.created_at)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyState className="mx-5 mb-5 sm:mx-6" icon={<Users />} title="No followers yet">Put your Promote sign by the register. Followers hear about every new deal first.</EmptyState>
+        )}
+        <p className="border-t border-line px-5 py-3 text-xs text-muted sm:px-6">For privacy, customers&apos; contact details are never shared with businesses.</p>
       </section>
     </div>
   );

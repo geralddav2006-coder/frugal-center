@@ -11,10 +11,10 @@ import { activateDemoSubscription, cancelDemoSubscription } from "@/server/servi
 import { setFollow, setFollowNotify, updatePreferences } from "@/server/services/engagement";
 import { DomainError, normalizeManualCode, extractQrToken } from "@/server/services/common";
 import { getPromoStats, recordPromoScan } from "@/server/services/promote";
-import { dateToZonedInput, zonedDayAndMinutes } from "@/lib/time";
+import { MARKET_TZ, dateToZonedInput, zonedDayAndMinutes } from "@/lib/time";
 
-const AUSTIN = { lat: 30.2672, lng: -97.7431 };
-const TZ = "America/Chicago";
+const DRACUT = { lat: 42.6708, lng: -71.3028 };
+const TZ = MARKET_TZ;
 const local = (hoursFromNow: number) => dateToZonedInput(new Date(Date.now() + hoursFromNow * 3600000), TZ);
 
 let db: Db;
@@ -49,37 +49,37 @@ beforeAll(async () => {
   ids = s.ids;
   businessIds = s.businessIds;
   dealIds = s.dealIds;
-  bakery = businessIds["main-street-bakery"]!;
+  bakery = businessIds["broadway-bakery"]!;
 });
 
 describe("discovery", () => {
   it("lists live deals near the viewer and supports filters", async () => {
-    const all = await listLiveDeals(db, AUSTIN, { radiusMiles: 25 }, null);
+    const all = await listLiveDeals(db, DRACUT, { radiusMiles: 25 }, null);
     expect(all.length).toBeGreaterThan(10);
     expect(all.every((d) => d.status === "published")).toBe(true);
     const sorted = all.map((d) => d.distance_miles!);
     expect([...sorted].sort((a, b) => a - b)).toEqual(sorted);
 
-    const food = await listLiveDeals(db, AUSTIN, { category: "food-drink" }, null);
+    const food = await listLiveDeals(db, DRACUT, { category: "food-drink" }, null);
     expect(food.every((d) => d.category_slug === "food-drink")).toBe(true);
 
-    const search = await listLiveDeals(db, AUSTIN, { q: "pastry" }, null);
+    const search = await listLiveDeals(db, DRACUT, { q: "pastry" }, null);
     expect(search.map((d) => d.title)).toContain("Surprise Pastry Box");
 
-    const cheap = await listLiveDeals(db, AUSTIN, { maxPriceCents: 1000 }, null);
+    const cheap = await listLiveDeals(db, DRACUT, { maxPriceCents: 1000 }, null);
     expect(cheap.every((d) => d.deal_price_cents! <= 1000)).toBe(true);
 
-    const appts = await listLiveDeals(db, AUSTIN, { type: "appointment", lastMinute: true }, null);
+    const appts = await listLiveDeals(db, DRACUT, { type: "appointment", lastMinute: true }, null);
     expect(appts.length).toBeGreaterThan(0);
     expect(appts.every((d) => d.next_slot_at)).toBe(true);
 
-    const sections = await getHomeSections(db, { ...AUSTIN, radiusMiles: 10 }, ids.customer!);
+    const sections = await getHomeSections(db, { ...DRACUT, radiusMiles: 10 }, ids.customer!);
     expect(sections.following.length).toBeGreaterThan(0);
     expect(sections.nearYou.length).toBeGreaterThan(0);
   });
 
   it("lets businesses post a promotion that can be filtered by type", async () => {
-    const seeded = await listLiveDeals(db, AUSTIN, { type: "promotion", radiusMiles: 25 }, null);
+    const seeded = await listLiveDeals(db, DRACUT, { type: "promotion", radiusMiles: 25 }, null);
     expect(seeded.length).toBeGreaterThan(0);
     expect(seeded.every((d) => d.type === "promotion")).toBe(true);
 
@@ -89,9 +89,9 @@ describe("discovery", () => {
       starts_at: local(-1), ends_at: local(24 * 10), per_customer_limit: 1,
     });
     await publishDeal(db, ids.owner!, id);
-    const promotions = await listLiveDeals(db, AUSTIN, { type: "promotion", radiusMiles: 25 }, null);
+    const promotions = await listLiveDeals(db, DRACUT, { type: "promotion", radiusMiles: 25 }, null);
     expect(promotions.map((d) => d.id)).toContain(id);
-    expect((await listLiveDeals(db, AUSTIN, { type: "surplus", radiusMiles: 25 }, null)).map((d) => d.id)).not.toContain(id);
+    expect((await listLiveDeals(db, DRACUT, { type: "surplus", radiusMiles: 25 }, null)).map((d) => d.id)).not.toContain(id);
 
     // Claim and redeem it like any other voucher; the merchant confirms the bill for a percentage discount.
     const user = await createUser(db, "promotion@test.dev");
@@ -118,10 +118,10 @@ describe("discovery", () => {
       type: "surplus", title: "Secret draft", images: [], original_price: 10, deal_price: 5, quantity_total: 2,
       starts_at: local(-1), ends_at: local(3),
     });
-    expect(await getDealDetail(db, id, AUSTIN, null)).toBeNull();
-    expect(await getDealDetail(db, id, AUSTIN, ids.customer!)).toBeNull();
-    expect(await getDealDetail(db, id, AUSTIN, ids.owner!)).not.toBeNull();
-    const live = await listLiveDeals(db, AUSTIN, { q: "Secret draft" }, null);
+    expect(await getDealDetail(db, id, DRACUT, null)).toBeNull();
+    expect(await getDealDetail(db, id, DRACUT, ids.customer!)).toBeNull();
+    expect(await getDealDetail(db, id, DRACUT, ids.owner!)).not.toBeNull();
+    const live = await listLiveDeals(db, DRACUT, { q: "Secret draft" }, null);
     expect(live).toHaveLength(0);
   });
 });
@@ -384,7 +384,7 @@ describe("following & notifications", () => {
     for (let i = 0; i < 4; i++) await dispatchNewDeal(db, await newSurplus(`Burst ${i}`));
     const [r] = await db.query(`select count(*)::int as n from public.email_outbox where user_id = $1`, [fan]);
     expect(r!.n).toBe(2);
-    const [n] = await db.query(`select count(*)::int as n from public.notifications where user_id = $1 and title like 'Main Street%'`, [fan]);
+    const [n] = await db.query(`select count(*)::int as n from public.notifications where user_id = $1 and title like 'Broadway%'`, [fan]);
     expect(n!.n).toBe(4);
   });
 });
@@ -393,7 +393,7 @@ describe("subscriptions gate publishing", () => {
   it("allows drafts without a subscription but blocks publishing", async () => {
     const owner = await createUser(db, "newowner@test.dev", "New Owner");
     const biz = await createBusiness(db, owner, {
-      name: "Brand New Cafe", category_slug: "food-drink", address_line: "100 Test St", city: "Austin", state: "TX", zip: "78702",
+      name: "Brand New Cafe", category_slug: "food-drink", address_line: "100 Test St", city: "Dracut", state: "MA", zip: "01826",
     });
     const { id } = await saveDeal(db, owner, biz.id, {
       type: "surplus", title: "Grand opening muffins", images: [], original_price: 6, deal_price: 2, quantity_total: 10, starts_at: local(-1), ends_at: local(5),

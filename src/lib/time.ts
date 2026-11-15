@@ -91,13 +91,16 @@ export function formatDayTime(date: Date | string, tz: string, now = new Date())
   return `${formatDay(date, tz, now)} · ${formatTime(date, tz)}`;
 }
 
-export function formatDate(date: Date | string, tz = "America/Chicago") {
+/** Time zone of the launch market (Dracut, MA). Businesses store their own zone; this is the fallback. */
+export const MARKET_TZ = "America/New_York";
+
+export function formatDate(date: Date | string, tz = MARKET_TZ) {
   return new Intl.DateTimeFormat("en-US", { timeZone: tz, month: "short", day: "numeric", year: "numeric" }).format(
     new Date(date),
   );
 }
 
-export function formatDateTime(date: Date | string, tz = "America/Chicago") {
+export function formatDateTime(date: Date | string, tz = MARKET_TZ) {
   return new Intl.DateTimeFormat("en-US", {
     timeZone: tz,
     month: "short",

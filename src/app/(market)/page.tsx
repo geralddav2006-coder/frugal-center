@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Bell, CalendarClock, Check, Clock, Heart, Map, MapPin, Sparkles, Store, Zap } from "lucide-react";
+import { Bell, CalendarClock, Check, Clock, Heart, Map, MapPin, Store } from "lucide-react";
 import { getViewer } from "@/server/auth";
 import { getDb } from "@/server/db";
 import { getViewerLocation } from "@/server/location";
@@ -68,7 +68,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <span className="text-lime-ink">close to home.</span>
           </h1>
           <p className="mt-3 max-w-[36ch] text-[16px] leading-relaxed text-muted sm:mt-4 sm:max-w-xl sm:text-lg">
-            Leftover bakes, last-minute appointments and quiet-hour specials from local spots. Free to claim, pay in store.
+            Leftover bakes, last-minute appointments and quiet-hour specials from Dracut&apos;s local spots. Free to claim, pay in store.
           </p>
           <Suspense>
             <SearchBox size="hero" className="mt-5 max-w-2xl sm:mt-7" />
@@ -150,7 +150,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 </div>
               }
             >
-              Frugal Center is launching in Austin first. Try a wider radius or pick an Austin neighborhood from the location menu.
+              Frugal Center is starting in Dracut, MA. Try a wider radius or pick Dracut from the location menu.
             </EmptyState>
           </div>
         ) : (
@@ -165,12 +165,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               </DealRail>
             ) : null}
 
-            {s.newToday.length ? (
-              <DealRail title="New Today" subtitle="Posted in the last 24 hours" href={explore({ sort: "newest" })} icon={<Sparkles className="size-5" aria-hidden />}>
-                {rail(s.newToday)}
-              </DealRail>
-            ) : null}
-
             {s.lastMinute.length ? (
               <DealRail title="Last-Minute Appointments" subtitle="Canceled and unbooked slots in the next 48 hours" href="/explore?lastMinute=1&type=appointment" icon={<CalendarClock className="size-5" aria-hidden />}>
                 {rail(s.lastMinute)}
@@ -179,11 +173,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
             <FollowedSection signedIn={signedIn} following={s.following} followingCount={s.followingCount} rail={rail} />
 
-            {s.recommended.length ? (
-              <DealRail title="Recommended for You" subtitle={s.recommendedReason} href={explore({ sort: "discount" })} icon={<Zap className="size-5" aria-hidden />}>
-                {rail(s.recommended)}
-              </DealRail>
-            ) : null}
           </>
         )}
 

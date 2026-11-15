@@ -19,7 +19,7 @@ export function DemoBanner() {
   return (
     <div className="relative bg-ink px-10 py-2 text-center text-[12.5px] font-medium text-white/90">
       <span className="mr-1.5 rounded bg-lime px-1.5 py-0.5 text-[10.5px] font-extrabold tracking-wide text-ink">DEMO</span>
-      Local demo with sample Austin data. No real payments, emails or push notifications are sent.
+      Local demo with sample Dracut, MA data. No real payments, emails or push notifications are sent.
       <button
         type="button"
         aria-label="Dismiss demo notice"

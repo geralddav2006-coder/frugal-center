@@ -55,3 +55,11 @@ export function slugify(input: string) {
 export function pluralize(n: number, one: string, many = `${one}s`) {
   return `${n} ${n === 1 ? one : many}`;
 }
+
+/** Search radius choices. Dracut is about 5 miles across, so 1 mile would hide most of town. */
+export const RADIUS_MILES = [3, 5, 10, 25];
+
+/** "Dracut" for the home town, "Centralville, Lowell" for a neighborhood of another city. */
+export function areaLabel(a: { neighborhood: string; city: string }) {
+  return a.neighborhood === a.city ? a.city : `${a.neighborhood}, ${a.city}`;
+}

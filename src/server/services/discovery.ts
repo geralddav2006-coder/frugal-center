@@ -52,10 +52,7 @@ export interface DealQuery {
   radiusMiles?: number;
   sort?: SortKey;
   businessIds?: string[];
-  categories?: string[];
-  publishedWithinHours?: number;
   endingWithinHours?: number;
-  excludeIds?: string[];
   dealIds?: string[];
   limit?: number;
 }
@@ -108,7 +105,6 @@ export async function listLiveDeals(
       or exists (select 1 from public.categories c where c.slug = b.category_slug and c.name ilike ${term}))`);
   }
   if (query.category) where.push(`b.category_slug = ${p(query.category)}`);
-  if (query.categories?.length) where.push(`b.category_slug = any(${p(query.categories)}::text[])`);
   if (query.type) where.push(`d.type = ${p(query.type)}::public.deal_type`);
   if (query.lastMinute) {
     where.push(`((d.type = 'appointment' and s.next_slot_at < now() + interval '48 hours')
@@ -119,14 +115,10 @@ export async function listLiveDeals(
   }
   if (query.radiusMiles) where.push(`public.distance_miles($1, $2, b.lat, b.lng) <= ${p(query.radiusMiles)}`);
   if (query.businessIds) where.push(`d.business_id = any(${p(query.businessIds)}::uuid[])`);
-  if (query.publishedWithinHours) {
-    where.push(`d.published_at > now() - make_interval(hours => ${p(query.publishedWithinHours)})`);
-  }
   if (query.endingWithinHours) {
     where.push(`coalesce(s.next_slot_at, d.ends_at) < now() + make_interval(hours => ${p(query.endingWithinHours)})`);
   }
   if (query.dealIds) where.push(`d.id = any(${p(query.dealIds)}::uuid[])`);
-  if (query.excludeIds?.length) where.push(`not (d.id = any(${p(query.excludeIds)}::uuid[]))`);
 
   const discountExpr = `case
     when d.discount_kind = 'fixed_price' then (d.original_price_cents - d.deal_price_cents)::float / d.original_price_cents * 100
@@ -156,12 +148,9 @@ export async function listLiveDeals(
 export interface HomeSections {
   nearYou: DealCard[];
   endingSoon: DealCard[];
-  newToday: DealCard[];
   lastMinute: DealCard[];
   following: DealCard[];
   followingCount: number;
-  recommended: DealCard[];
-  recommendedReason: string | null;
 }
 
 export async function getHomeSections(
@@ -171,64 +160,18 @@ export async function getHomeSections(
   category?: string,
 ): Promise<HomeSections> {
   const base = { radiusMiles: loc.radiusMiles, category, limit: 12 };
-  const [nearYou, endingSoon, newToday, lastMinute] = await Promise.all([
+  const [nearYou, endingSoon, lastMinute, follows] = await Promise.all([
     listLiveDeals(db, loc, { ...base, sort: "nearest" }, viewerId),
     listLiveDeals(db, loc, { ...base, sort: "ending", endingWithinHours: 24 }, viewerId),
-    listLiveDeals(db, loc, { ...base, sort: "newest", publishedWithinHours: 24 }, viewerId),
     listLiveDeals(db, loc, { ...base, sort: "ending", type: "appointment", lastMinute: true }, viewerId),
+    viewerId
+      ? db.query<{ business_id: string }>(`select business_id from public.follows where user_id = $1`, [viewerId])
+      : Promise.resolve([]),
   ]);
-
-  let following: DealCard[] = [];
-  let followingCount = 0;
-  let recommended: DealCard[] = [];
-  let recommendedReason: string | null = null;
-
-  if (viewerId) {
-    const follows = await db.query<{ business_id: string }>(
-      `select business_id from public.follows where user_id = $1`,
-      [viewerId],
-    );
-    followingCount = follows.length;
-    if (followingCount) {
-      following = await listLiveDeals(
-        db,
-        loc,
-        { category, sort: "newest", businessIds: follows.map((f) => f.business_id), limit: 12 },
-        viewerId,
-      );
-    }
-    // Categories the viewer has engaged with: follows, saves and redemptions.
-    const cats = await db.query<{ category_slug: string; score: number }>(
-      `select b.category_slug, count(*)::int as score from (
-         select business_id from public.follows where user_id = $1
-         union all select d.business_id from public.favorites f join public.deals d on d.id = f.deal_id where f.user_id = $1
-         union all select business_id from public.claims where user_id = $1
-       ) x join public.businesses b on b.id = x.business_id
-       group by b.category_slug order by score desc limit 2`,
-      [viewerId],
-    );
-    if (cats.length) {
-      recommended = await listLiveDeals(
-        db,
-        loc,
-        {
-          ...base,
-          category: undefined,
-          categories: category ? [category] : cats.map((c) => c.category_slug),
-          sort: "discount",
-          excludeIds: following.map((d) => d.id),
-        },
-        viewerId,
-      );
-      recommendedReason = "Based on businesses you follow, save and visit";
-    }
-  }
-  if (!recommended.length) {
-    recommended = await listLiveDeals(db, loc, { ...base, sort: "discount" }, viewerId);
-    recommendedReason = viewerId ? "Biggest discounts near you" : "Biggest discounts near you";
-  }
-
-  return { nearYou, endingSoon, newToday, lastMinute, following, followingCount, recommended, recommendedReason };
+  const following = follows.length
+    ? await listLiveDeals(db, loc, { category, sort: "newest", businessIds: follows.map((f) => f.business_id), limit: 12 }, viewerId)
+    : [];
+  return { nearYou, endingSoon, lastMinute, following, followingCount: follows.length };
 }
 
 // ---------------------------------------------------------------------------
@@ -354,7 +297,7 @@ export async function getBusinessBySlug(db: Queryable, slug: string, loc: GeoPoi
 
 export async function listLaunchAreas(db: Queryable) {
   return db.query<{ zip: string; neighborhood: string; city: string; state: string; lat: number; lng: number }>(
-    `select zip, neighborhood, city, state, lat, lng from public.launch_areas order by neighborhood`,
+    `select zip, neighborhood, city, state, lat, lng from public.launch_areas order by (city = 'Dracut') desc, city, neighborhood`,
   );
 }
 

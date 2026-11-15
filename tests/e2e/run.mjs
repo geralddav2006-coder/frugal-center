@@ -137,8 +137,8 @@ async function main() {
     await customer.getByRole("dialog").waitFor();
     await customer.getByRole("button", { name: "Use my current location" }).click();
     await customer.getByText(/permission was denied|couldn't get your location|doesn't support location/).waitFor();
-    await customer.getByRole("button", { name: /South Congress/ }).click();
-    await customer.getByRole("button", { name: /Location: South Congress/ }).first().waitFor({ timeout: 20000 });
+    await customer.getByRole("button", { name: /Centralville/ }).click();
+    await customer.getByRole("button", { name: /Location: Centralville/ }).first().waitFor({ timeout: 20000 });
   });
 
   await step("3. Customer discovers a deal", async () => {
@@ -153,7 +153,7 @@ async function main() {
     await customer.getByRole("button", { name: "Follow" }).first().click();
     await customer.getByRole("button", { name: "Following" }).first().waitFor();
     await customer.goto(`${BASE}/following`);
-    await customer.getByText("Main Street Bakery").first().waitFor();
+    await customer.getByText("Broadway Bakery").first().waitFor();
   });
 
   await step("5. Merchant publishes a new offer", async () => {
@@ -285,7 +285,7 @@ async function main() {
     await p.selectOption("#b-cat", "food-drink");
     await p.getByRole("button", { name: /Continue/ }).click();
     await p.fill("#b-addr", "200 Test Ave");
-    await p.fill("#b-zip", "78702");
+    await p.fill("#b-zip", "01826");
     await p.getByRole("button", { name: /Continue/ }).click();
     await p.getByRole("button", { name: /Continue/ }).click();
     await p.getByRole("button", { name: "Create business" }).click();
@@ -317,7 +317,7 @@ async function main() {
     const [scans0, fromSigns0] = await tiles();
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
     const p = await ctx.newPage();
-    await p.goto(`${BASE}/f/main-street-bakery?p=counter`);
+    await p.goto(`${BASE}/f/broadway-bakery?p=counter`);
     await p.getByText("Thanks for scanning!").waitFor();
     await p.getByRole("link", { name: "Sign up free to follow" }).click();
     await p.waitForURL(/\/signup/);
@@ -325,8 +325,8 @@ async function main() {
     await p.fill("input[name=email]", `scan-${Date.now()}@e2e.test`);
     await p.fill("input[name=password]", PASSWORD);
     await p.click("button[type=submit]");
-    await p.waitForURL(/\/business\/main-street-bakery/, { timeout: 60000 });
-    await p.getByText("You're following Main Street Bakery.").waitFor({ timeout: 20000 });
+    await p.waitForURL(/\/business\/broadway-bakery/, { timeout: 60000 });
+    await p.getByText("You're following Broadway Bakery.").waitFor({ timeout: 20000 });
     await ctx.close();
     await owner.goto(`${BASE}/dashboard/promote`);
     const [scans1, fromSigns1] = await tiles();

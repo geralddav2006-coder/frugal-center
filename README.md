@@ -16,13 +16,13 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000. On first start an embedded Postgres (PGlite) database is created in `.data/`, the same SQL migrations used for Supabase are applied, and realistic sample data for an Austin, TX launch is seeded.
+Open http://localhost:3000. On first start an embedded Postgres (PGlite) database is created in `.data/`, the same SQL migrations used for Supabase are applied, and realistic sample data for a Dracut, MA launch is seeded.
 
 | Demo account | Email | What to try |
 |---|---|---|
 | Customer | `maya@demo.frugal.center` | Explore, claim, vouchers, savings ($140.70 history), following |
-| Business owner | `owner@demo.frugal.center` | Main Street Bakery dashboard, create/publish deals, redeem, analytics, billing |
-| Staff | `staff@demo.frugal.center` | Redeem-only access to Main Street Bakery |
+| Business owner | `owner@demo.frugal.center` | Broadway Bakery dashboard, create/publish deals, redeem, analytics, billing |
+| Staff | `staff@demo.frugal.center` | Redeem-only access to Broadway Bakery |
 | Admin | `admin@demo.frugal.center` | `/admin`: review, moderation, reports, activity, email log |
 
 Password for all of them: `frugal-demo`. The login page has one-tap buttons for these accounts in demo mode.
@@ -46,9 +46,9 @@ A dismissible banner and the footer state which mode is active. Reset the demo d
 
 ## Feature tour
 
-**Customers**: mobile-first explore page ("Good deals, close to home.") with search, category tabs (All, Food & Drink, Beauty & Wellness, Shopping, Activities, Services, Last-Minute) and six sections: Deals Near You, Ending Soon, New Today, Last-Minute Appointments, Businesses You Follow, Recommended for You. List or map view (Leaflet + CARTO/OSM tiles with price pins). Filters: distance, category, price, type; sorts: nearest, ending soon, newest, biggest discount. Location by launch-area ZIP/neighborhood or browser geolocation, with a graceful fallback when permission is denied. Deal pages clearly distinguish **surplus** (quantity + pickup window), **appointments** (pick a specific time slot), **off-peak** (days and hours) and **promotions** (valid between two dates). **Promotions** are a fourth deal type (`promotion`) for general promotional discounts that aren't surplus, appointments or off-peak: percent off, amount off or a special price, valid any time between two dates, with an optional voucher limit. Customers can filter for them with the Promotions type filter. Business profiles at `/business/[slug]`. Follow/unfollow with per-business mute, saved deals, vouchers, history, notification center, preferences, and a savings dashboard with a privacy-safe share link.
+**Customers**: mobile-first explore page ("Good deals, close to home.") with search, category tabs (All, Food & Drink, Beauty & Wellness, Shopping, Activities, Services, Last-Minute) and four sections: Deals Near You, Ending Soon, Last-Minute Appointments, Businesses You Follow. List or map view (Leaflet + CARTO/OSM tiles with price pins). Filters: distance, category, price, type; sorts: nearest, ending soon, newest, biggest discount. Location by Dracut-area town/ZIP or browser geolocation, with a 3–25 mile radius, with a graceful fallback when permission is denied. Deal pages clearly distinguish **surplus** (quantity + pickup window), **appointments** (pick a specific time slot), **off-peak** (days and hours) and **promotions** (valid between two dates). **Promotions** are a fourth deal type (`promotion`) for general promotional discounts that aren't surplus, appointments or off-peak: percent off, amount off or a special price, valid any time between two dates, with an optional voucher limit. Customers can filter for them with the Promotions type filter. Business profiles at `/business/[slug]`. Follow/unfollow with per-business mute, saved deals, vouchers, history, notification center, preferences, and a savings dashboard with a privacy-safe share link.
 
-**Businesses**: marketing page at `/for-business`, 4-step onboarding (basics, location with map pin, hours, photos), billing, and a dashboard (Overview, My Deals, Create Deal, Redeem, Followers, Analytics, Promote, Business Profile, Billing, Settings). The deal editor supports all four types with a live preview, plus save draft, publish now, schedule (future start), pause/resume, end, duplicate and delete draft. Redemption has **Scan QR** (live camera) and **Enter Code** tabs that share one verification path. Team roles: owner, manager, staff. **Promote** (`/dashboard/promote`) gives each business printable in-store signs (counter card, table tent, window sign, sticker sheet) with their own QR code, a message picker based on the deals they run, a share link and a downloadable QR PNG. Codes point to `/f/<slug>?p=<piece>`, which counts the scan and opens the business page with a one-tap follow (new visitors sign up and are followed automatically); follows from a sign are credited (`follows.source = 'sign'`) and shown on the Promote page.
+**Businesses**: marketing page at `/for-business`, 4-step onboarding (basics, location with map pin, hours, photos), billing, and a dashboard (Overview, My Deals, Create Deal, Redeem, Analytics (with followers), Promote, Profile & Team, Billing). The deal editor supports all four types with a live preview, plus save draft, publish now, schedule (future start), pause/resume, end, duplicate and delete draft. Redemption has **Scan QR** (live camera) and **Enter Code** tabs that share one verification path. Team roles: owner, manager, staff. **Promote** (`/dashboard/promote`) gives each business printable in-store signs (counter card, table tent, window sign, sticker sheet) with their own QR code, a message picker based on the deals they run, a share link and a downloadable QR PNG. Codes point to `/f/<slug>?p=<piece>`, which counts the scan and opens the business page with a one-tap follow (new visitors sign up and are followed automatically); follows from a sign are credited (`follows.source = 'sign'`) and shown on the Promote page.
 
 **Admin** (`/admin`): platform stats, business review (approve/reject), suspension, listing moderation (disable/restore), abuse reports, subscription status, claims and redemptions monitor, audit log, email log.
 
@@ -163,7 +163,7 @@ Also: `npm run typecheck`, `npm run lint`, `npm run build`.
 
 ## Known limitations / next steps
 
-- Launch market is Austin ZIPs (`launch_areas`). Business locations use the ZIP centroid plus a draggable map pin rather than a geocoding API.
+- Launch market is Dracut, MA (01826) plus the neighboring ZIPs in Lowell, Tyngsborough, Methuen and Pelham, NH (`launch_areas`). Times use each business's time zone (default `America/New_York`). Business locations use the ZIP centroid plus a draggable map pin rather than a geocoding API.
 - Search uses `ILIKE`. Add Postgres full-text search or PostGIS once listings grow.
 - No in-app customer–merchant messaging, reviews or ratings (deliberately out of MVP scope, and no ratings are invented).
 - The local demo database is single-process. Don't deploy demo mode to serverless hosts.

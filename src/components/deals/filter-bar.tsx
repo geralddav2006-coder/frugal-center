@@ -1,7 +1,7 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SlidersHorizontal, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, RADIUS_MILES } from "@/lib/utils";
 
 const SORTS = [
   { v: "nearest", label: "Nearest" },
@@ -14,7 +14,7 @@ const PRICES = [
   { v: "25", label: "Under $25" },
   { v: "50", label: "Under $50" },
 ];
-const RADII = ["1", "3", "5", "10", "25"];
+const RADII = RADIUS_MILES.map(String);
 const TYPES = [
   { v: "surplus", label: "Surplus" },
   { v: "appointment", label: "Appointments" },

@@ -1,5 +1,6 @@
 import type { Queryable } from "../db/types";
 import { generateToken } from "./common";
+import { MARKET_TZ } from "@/lib/time";
 
 export interface SavingsSummary {
   totalCents: number;
@@ -20,7 +21,7 @@ export interface SavingsSummary {
   }[];
 }
 
-const TZ = "America/Chicago";
+const TZ = MARKET_TZ;
 
 /**
  * Savings come exclusively from `redemptions` — rows written at the moment a

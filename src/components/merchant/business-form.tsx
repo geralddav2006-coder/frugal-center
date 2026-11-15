@@ -66,7 +66,7 @@ export function BusinessForm({
   const sections = [
     <div key="basics" className="grid gap-5">
       <Field label="Business name" htmlFor="b-name">
-        <Input id="b-name" value={v.name} onChange={(e) => set("name", e.target.value)} maxLength={80} placeholder="Main Street Bakery" required />
+        <Input id="b-name" value={v.name} onChange={(e) => set("name", e.target.value)} maxLength={80} placeholder="Broadway Bakery" required />
       </Field>
       <Field label="Category" htmlFor="b-cat">
         <NativeSelect id="b-cat" value={v.category_slug} onChange={(e) => set("category_slug", e.target.value)} required>
@@ -95,7 +95,7 @@ export function BusinessForm({
             <p className="mt-1.5 text-[13px] text-muted">Drag the pin or tap the map to mark your exact entrance. Customers use this for distance and directions.</p>
           </>
         ) : (
-          <p className="rounded-xl bg-paper p-3 text-sm text-muted">Enter a ZIP code to place your business on the map. During our Austin launch we support {areas.map((a) => a.zip).join(", ")}.</p>
+          <p className="rounded-xl bg-paper p-3 text-sm text-muted">Enter a ZIP code to place your business on the map. During our Dracut launch we support {areas.map((a) => `${a.neighborhood} (${a.zip})`).join(", ")}.</p>
         )}
       </div>
       <div className="grid gap-5 sm:grid-cols-2">

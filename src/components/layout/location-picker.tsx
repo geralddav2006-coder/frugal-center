@@ -7,15 +7,13 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { setLocationAction } from "@/app/actions/customer";
-import { cn } from "@/lib/utils";
+import { areaLabel, cn, RADIUS_MILES } from "@/lib/utils";
 
 export interface Area {
   zip: string;
   neighborhood: string;
   city: string;
 }
-
-const RADII = [1, 3, 5, 10, 25];
 
 export function LocationPicker({
   label,
@@ -51,7 +49,7 @@ export function LocationPicker({
   const useGps = () => {
     setError(null);
     if (!("geolocation" in navigator)) {
-      setError("Your browser doesn't support location. Choose a neighborhood or enter a ZIP instead.");
+      setError("Your browser doesn't support location. Pick a town or enter a ZIP instead.");
       return;
     }
     setLocating(true);
@@ -64,8 +62,8 @@ export function LocationPicker({
         setLocating(false);
         setError(
           err.code === err.PERMISSION_DENIED
-            ? "Location permission was denied. No problem — choose a neighborhood or enter a ZIP below."
-            : "We couldn't get your location. Choose a neighborhood or enter a ZIP below.",
+            ? "Location permission was denied. No problem — pick a town or enter a ZIP below."
+            : "We couldn't get your location. Pick a town or enter a ZIP below.",
         );
       },
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 },
@@ -107,12 +105,12 @@ export function LocationPicker({
           </form>
           {error ? <p className="rounded-xl bg-[#fff4dc] p-3 text-sm font-medium text-warning" role="alert">{error}</p> : null}
           <div>
-            <p className="mb-2 text-sm font-semibold">Austin neighborhoods</p>
+            <p className="mb-2 text-sm font-semibold">Dracut & nearby towns</p>
             <div className="flex flex-wrap gap-2">
               {areas.map((a) => (
                 <button key={a.zip} type="button" disabled={pending} onClick={() => apply({ zip: a.zip })}
                   className="rounded-full border border-line px-3.5 py-2 text-sm font-medium hover:border-ink">
-                  {a.neighborhood} <span className="text-muted">{a.zip}</span>
+                  {areaLabel(a)} <span className="text-muted">{a.zip}</span>
                 </button>
               ))}
             </div>
@@ -120,7 +118,7 @@ export function LocationPicker({
           <div>
             <p className="mb-2 text-sm font-semibold">Search radius</p>
             <div className="flex gap-2" role="radiogroup" aria-label="Search radius">
-              {RADII.map((m) => (
+              {RADIUS_MILES.map((m) => (
                 <button key={m} type="button" role="radio" aria-checked={r === m} onClick={() => setR(m)}
                   className={cn("h-10 flex-1 rounded-full border text-sm font-semibold transition", r === m ? "border-ink bg-ink text-white" : "border-line hover:border-ink")}>
                   {m} mi

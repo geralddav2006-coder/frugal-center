@@ -572,12 +572,13 @@ export async function getAnalytics(q: Queryable, businessId: string, range: Rang
   );
   const chartDays = days ?? 90;
   const daily = await q.query<{ day: string; claims: number; redemptions: number }>(
-    `with days as (
-       select generate_series((now() at time zone 'America/Chicago')::date - ($2::int - 1), (now() at time zone 'America/Chicago')::date, '1 day')::date as day
+    `with tz as (select timezone as zone from public.businesses where id = $1),
+     days as (
+       select generate_series((now() at time zone tz.zone)::date - ($2::int - 1), (now() at time zone tz.zone)::date, '1 day')::date as day from tz
      )
      select to_char(days.day, 'YYYY-MM-DD') as day,
-       (select count(*)::int from public.claims c where c.business_id = $1 and (c.created_at at time zone 'America/Chicago')::date = days.day) as claims,
-       (select count(*)::int from public.redemptions r where r.business_id = $1 and (r.redeemed_at at time zone 'America/Chicago')::date = days.day) as redemptions
+       (select count(*)::int from public.claims c where c.business_id = $1 and (c.created_at at time zone (select zone from tz))::date = days.day) as claims,
+       (select count(*)::int from public.redemptions r where r.business_id = $1 and (r.redeemed_at at time zone (select zone from tz))::date = days.day) as redemptions
      from days order by days.day`,
     [businessId, chartDays],
   );

@@ -29,6 +29,13 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  // Followers and Team moved into Analytics and Profile & Team.
+  async redirects() {
+    return [
+      { source: "/dashboard/followers", destination: "/dashboard/analytics#followers", permanent: true },
+      { source: "/dashboard/settings", destination: "/dashboard/profile#team", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

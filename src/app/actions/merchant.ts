@@ -181,7 +181,7 @@ export async function inviteTeamAction(email: string, role: "manager" | "staff")
     const { viewer, db, businessId } = await ctx(["owner", "manager"]);
     return inviteTeamMember(db, viewer.id, businessId, email, role);
   });
-  revalidatePath("/dashboard/settings");
+  revalidatePath("/dashboard/profile");
   return res;
 }
 
@@ -191,7 +191,7 @@ export async function removeTeamAction(userId: string) {
     await removeTeamMember(db, viewer.id, businessId, userId);
     return {};
   });
-  revalidatePath("/dashboard/settings");
+  revalidatePath("/dashboard/profile");
   return res;
 }
 
@@ -201,7 +201,7 @@ export async function revokeInviteAction(inviteId: string) {
     await revokeInvite(db, viewer.id, businessId, inviteId);
     return {};
   });
-  revalidatePath("/dashboard/settings");
+  revalidatePath("/dashboard/profile");
   return res;
 }
 

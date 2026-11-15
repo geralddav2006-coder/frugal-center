@@ -61,7 +61,7 @@ export default async function ForBusinessPage() {
               Turn empty time slots and unsold inventory into <span className="text-lime-ink">revenue.</span>
             </h1>
             <p className="mx-auto mt-4 max-w-[34ch] text-[16px] leading-relaxed text-muted sm:mx-0 sm:mt-5 sm:max-w-xl sm:text-lg">
-              Fill cancellations, sell surplus inventory, and bring customers through your door with local deals.
+              Fill cancellations, sell surplus inventory, and bring Dracut neighbors through your door with local deals.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row">
               <Button asChild variant="lime" size="lg" className="w-full sm:w-auto"><Link href={startHref}>{ctaLabel}</Link></Button>
@@ -74,7 +74,7 @@ export default async function ForBusinessPage() {
           <div className="relative mx-auto w-full max-w-[300px] sm:max-w-sm" aria-hidden>
             <div className="absolute -inset-8 -z-10 rounded-[48px] bg-[radial-gradient(circle_at_70%_30%,#e0fdeb,transparent_60%)]" />
             <div className="rounded-[32px] border-[8px] border-ink bg-white p-3.5 text-left shadow-[var(--shadow-lift)] sm:rounded-[36px] sm:border-[10px] sm:p-4">
-              <div className="flex items-center justify-between text-xs font-semibold text-muted"><span>Redeem</span><span>Main Street Bakery</span></div>
+              <div className="flex items-center justify-between text-xs font-semibold text-muted"><span>Redeem</span><span>Broadway Bakery</span></div>
               <div className="mt-3 rounded-2xl bg-ink p-4 text-white sm:p-5">
                 <p className="text-xs text-white/60">Voucher verified</p>
                 <p className="mt-1 text-lg font-extrabold">Surprise Pastry Box</p>
