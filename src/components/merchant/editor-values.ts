@@ -18,7 +18,7 @@ function roundedNow(addHours = 0) {
 }
 
 export function newEditorValue(type: DealType | null, tz: string): EditorValue {
-  const isLong = type === "slow_hours" || type === "exclusive"; // runs for weeks, not hours
+  const isLong = type === "slow_hours" || type === "promotion"; // runs for weeks, not hours
   return {
     type,
     title: "", description: "", images: [], redemption_instructions: "", restrictions: "", per_customer_limit: 1,

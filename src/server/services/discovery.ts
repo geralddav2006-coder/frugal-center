@@ -48,7 +48,6 @@ export interface DealQuery {
   category?: string;
   type?: DealType;
   lastMinute?: boolean;
-  exclusive?: boolean; // only Frugal Center exclusives (type = 'exclusive')
   maxPriceCents?: number;
   radiusMiles?: number;
   sort?: SortKey;
@@ -115,7 +114,6 @@ export async function listLiveDeals(
     where.push(`((d.type = 'appointment' and s.next_slot_at < now() + interval '48 hours')
       or d.ends_at < now() + interval '6 hours')`);
   }
-  if (query.exclusive) where.push(`d.type = 'exclusive'`);
   if (query.maxPriceCents != null) {
     where.push(`d.discount_kind = 'fixed_price' and d.deal_price_cents <= ${p(query.maxPriceCents)}`);
   }
@@ -157,7 +155,6 @@ export async function listLiveDeals(
 
 export interface HomeSections {
   nearYou: DealCard[];
-  exclusives: DealCard[];
   endingSoon: DealCard[];
   newToday: DealCard[];
   lastMinute: DealCard[];
@@ -174,9 +171,8 @@ export async function getHomeSections(
   category?: string,
 ): Promise<HomeSections> {
   const base = { radiusMiles: loc.radiusMiles, category, limit: 12 };
-  const [nearYou, exclusives, endingSoon, newToday, lastMinute] = await Promise.all([
+  const [nearYou, endingSoon, newToday, lastMinute] = await Promise.all([
     listLiveDeals(db, loc, { ...base, sort: "nearest" }, viewerId),
-    listLiveDeals(db, loc, { ...base, sort: "nearest", exclusive: true }, viewerId),
     listLiveDeals(db, loc, { ...base, sort: "ending", endingWithinHours: 24 }, viewerId),
     listLiveDeals(db, loc, { ...base, sort: "newest", publishedWithinHours: 24 }, viewerId),
     listLiveDeals(db, loc, { ...base, sort: "ending", type: "appointment", lastMinute: true }, viewerId),
@@ -232,7 +228,7 @@ export async function getHomeSections(
     recommendedReason = viewerId ? "Biggest discounts near you" : "Biggest discounts near you";
   }
 
-  return { nearYou, exclusives, endingSoon, newToday, lastMinute, following, followingCount, recommended, recommendedReason };
+  return { nearYou, endingSoon, newToday, lastMinute, following, followingCount, recommended, recommendedReason };
 }
 
 // ---------------------------------------------------------------------------
@@ -364,8 +360,8 @@ export async function listLaunchAreas(db: Queryable) {
 
 /** Live deal count and best discount within the viewer's radius (for the hero). */
 export async function nearbyStats(db: Queryable, loc: GeoPoint, radiusMiles: number, category?: string) {
-  const [r] = await db.query<{ n: number; max_pct: number; exclusive_n: number }>(
-    `select count(*)::int as n, count(*) filter (where d.type = 'exclusive')::int as exclusive_n,
+  const [r] = await db.query<{ n: number; max_pct: number }>(
+    `select count(*)::int as n,
        coalesce(max(case
          when d.discount_kind = 'fixed_price' then round((d.original_price_cents - d.deal_price_cents)::numeric / d.original_price_cents * 100)
          when d.discount_kind = 'percent' then d.percent_off end), 0)::int as max_pct
@@ -375,5 +371,5 @@ export async function nearbyStats(db: Queryable, loc: GeoPoint, radiusMiles: num
        and ($4::text is null or b.category_slug = $4)`,
     [loc.lat, loc.lng, radiusMiles, category ?? null],
   );
-  return { count: r?.n ?? 0, maxPct: r?.max_pct ?? 0, exclusiveCount: r?.exclusive_n ?? 0 };
+  return { count: r?.n ?? 0, maxPct: r?.max_pct ?? 0 };
 }

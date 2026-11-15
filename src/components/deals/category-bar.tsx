@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { Croissant, Gem, LayoutGrid, ShoppingBag, Sparkles, Ticket, Wrench, Zap } from "lucide-react";
+import { Croissant, LayoutGrid, ShoppingBag, Sparkles, Ticket, Wrench, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const CATEGORY_TABS = [
   { key: "all", label: "All", icon: LayoutGrid },
-  { key: "exclusive", label: "Exclusives", icon: Gem },
   { key: "food-drink", label: "Food & Drink", icon: Croissant },
   { key: "beauty-wellness", label: "Beauty & Wellness", icon: Sparkles },
   { key: "shopping", label: "Shopping", icon: ShoppingBag },
@@ -27,12 +26,11 @@ export function CategoryBar({
 }) {
   const hrefFor = (key: string) => {
     const p = new URLSearchParams();
-    for (const [k, v] of Object.entries(params)) if (v && k !== "category" && k !== "lastMinute" && k !== "exclusive") p.set(k, v);
+    for (const [k, v] of Object.entries(params)) if (v && k !== "category" && k !== "lastMinute") p.set(k, v);
     if (key === "last-minute") p.set("lastMinute", "1");
-    else if (key === "exclusive") p.set("exclusive", "1");
     else if (key !== "all") p.set("category", key);
     // Filter tabs (not business categories) always open the full Explore list.
-    const path = key === "last-minute" || key === "exclusive" ? "/explore" : basePath;
+    const path = key === "last-minute" ? "/explore" : basePath;
     const qs = p.toString();
     return qs ? `${path}?${qs}` : path;
   };
@@ -51,7 +49,7 @@ export function CategoryBar({
               isActive ? "border-ink text-ink" : "border-transparent text-muted hover:border-line hover:text-ink",
             )}
           >
-            <span className={cn("grid size-9 place-items-center rounded-full transition", isActive ? (key === "last-minute" || key === "exclusive" ? "bg-lime" : "bg-mist") : "group-hover:bg-mist")}>
+            <span className={cn("grid size-9 place-items-center rounded-full transition", isActive ? (key === "last-minute" ? "bg-lime" : "bg-mist") : "group-hover:bg-mist")}>
               <Icon className="size-[19px]" strokeWidth={isActive ? 2.3 : 1.9} aria-hidden />
             </span>
             {label}

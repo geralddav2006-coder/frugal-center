@@ -78,42 +78,39 @@ describe("discovery", () => {
     expect(sections.nearYou.length).toBeGreaterThan(0);
   });
 
-  it("lets businesses post a Frugal Center exclusive promo that gets its own section", async () => {
-    const seeded = await listLiveDeals(db, AUSTIN, { exclusive: true, radiusMiles: 25 }, null);
+  it("lets businesses post a promotion that can be filtered by type", async () => {
+    const seeded = await listLiveDeals(db, AUSTIN, { type: "promotion", radiusMiles: 25 }, null);
     expect(seeded.length).toBeGreaterThan(0);
-    expect(seeded.every((d) => d.type === "exclusive")).toBe(true);
+    expect(seeded.every((d) => d.type === "promotion")).toBe(true);
 
     // A plain promotional discount: no leftovers, slots or time window, valid any time between the dates.
     const { id } = await saveDeal(db, ids.owner!, bakery, {
-      type: "exclusive", title: "10% off for Frugal Center members", images: [], discount_kind: "percent", percent_off: 10,
+      type: "promotion", title: "10% off for Frugal Center members", images: [], discount_kind: "percent", percent_off: 10,
       starts_at: local(-1), ends_at: local(24 * 10), per_customer_limit: 1,
     });
     await publishDeal(db, ids.owner!, id);
-    const exclusives = await listLiveDeals(db, AUSTIN, { exclusive: true, radiusMiles: 25 }, null);
-    expect(exclusives.map((d) => d.id)).toContain(id);
-    const sections = await getHomeSections(db, { ...AUSTIN, radiusMiles: 25 }, null);
-    expect(sections.exclusives.map((d) => d.id)).toContain(id);
-    expect(sections.exclusives.every((d) => d.type === "exclusive")).toBe(true);
+    const promotions = await listLiveDeals(db, AUSTIN, { type: "promotion", radiusMiles: 25 }, null);
+    expect(promotions.map((d) => d.id)).toContain(id);
     expect((await listLiveDeals(db, AUSTIN, { type: "surplus", radiusMiles: 25 }, null)).map((d) => d.id)).not.toContain(id);
 
     // Claim and redeem it like any other voucher; the merchant confirms the bill for a percentage discount.
-    const user = await createUser(db, "exclusive@test.dev");
+    const user = await createUser(db, "promotion@test.dev");
     const claim = await claimDeal(db, user, id, null);
     await expectError(confirmRedemption(db, { staffId: ids.staff!, businessId: bakery, claimId: claim.claimId, method: "code" }), "amounts_required");
     const r = await confirmRedemption(db, { staffId: ids.staff!, businessId: bakery, claimId: claim.claimId, method: "code", originalCents: 3000, finalCents: 2700 });
     expect(r.savingsCents).toBe(300);
 
-    // Special-price exclusives validate like other fixed-price deals, and duplicates keep the type.
+    // Special-price promotions validate like other fixed-price deals, and duplicates keep the type.
     await expectError(
       saveDeal(db, ids.owner!, bakery, {
-        type: "exclusive", title: "Bad price", images: [], discount_kind: "fixed_price", original_price: "10", deal_price: "12",
+        type: "promotion", title: "Bad price", images: [], discount_kind: "fixed_price", original_price: "10", deal_price: "12",
         starts_at: local(-1), ends_at: local(48),
       }),
       "invalid",
     );
     const copy = await duplicateDeal(db, ids.owner!, id);
     const [dup] = await db.query<{ type: string }>(`select type from public.deals where id = $1`, [copy.id]);
-    expect(dup!.type).toBe("exclusive");
+    expect(dup!.type).toBe("promotion");
   });
 
   it("hides drafts from the public but shows them to the business", async () => {

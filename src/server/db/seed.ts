@@ -31,7 +31,7 @@ const img = (id: string, w = 1200) => `https://images.unsplash.com/photo-${id}?a
 
 type SeedDeal = {
   key: string;
-  type: "surplus" | "appointment" | "slow_hours" | "exclusive";
+  type: "surplus" | "appointment" | "slow_hours" | "promotion";
   title: string;
   description: string;
   images: string[];
@@ -93,7 +93,7 @@ const BUSINESSES: SeedBusiness[] = [
     cover: img("1501339847302-ac426a4a7cbb"), hours: weekdays("07:00", "19:00", H("08:00", "19:00"), H("08:00", "17:00")),
     deals: [
       { key: "latte", type: "slow_hours", kind: "fixed_price", title: "Afternoon latte happy hour", description: "Any 12 oz latte or cortado for $3 during our quiet afternoon stretch. Oat and almond milk included.", images: [img("1509042239860-f550ce710b93"), img("1495474472287-4d71bcdd2085")], orig: 550, price: 300, startsH: -48, endsH: 24 * 20, publishedH: 48, days: [1, 2, 3, 4, 5], window: ["14:00", "17:00"], instructions: "Show your voucher when you order.", restrictions: "One drink per voucher. Dine-in or to-go." },
-      { key: "fc-25", type: "exclusive", kind: "percent", pct: 25, title: "25% off your whole order", description: "Our thank-you to Frugal Center neighbors: 25% off any drinks and pastries, any time we're open.", images: [img("1495474472287-4d71bcdd2085")], qty: 60, startsH: -30, endsH: 24 * 21, publishedH: 30, instructions: "Show your voucher when you order.", restrictions: "Excludes retail coffee beans and gift cards." },
+      { key: "fc-25", type: "promotion", kind: "percent", pct: 25, title: "25% off your whole order", description: "Our thank-you to Frugal Center neighbors: 25% off any drinks and pastries, any time we're open.", images: [img("1495474472287-4d71bcdd2085")], qty: 60, startsH: -30, endsH: 24 * 21, publishedH: 30, instructions: "Show your voucher when you order.", restrictions: "Excludes retail coffee beans and gift cards." },
     ],
   },
   {
@@ -103,7 +103,7 @@ const BUSINESSES: SeedBusiness[] = [
     cover: img("1565299585323-38d6b0865b47"), hours: weekdays("11:00", "22:00", H("10:00", "23:00"), H("10:00", "21:00")),
     deals: [
       { key: "bill", type: "slow_hours", kind: "percent", pct: 30, title: "30% off your bill, 2–5 PM", description: "Beat the dinner rush: 30% off your whole food bill on weekday afternoons.", images: [img("1565299585323-38d6b0865b47"), img("1504674900247-0877df9cc836")], startsH: -26, endsH: 24 * 30, publishedH: 26, days: [1, 2, 3, 4], window: ["14:00", "17:00"], qty: 60, claimed: 9, instructions: "Show your voucher before paying. Staff will apply the discount to your bill.", restrictions: "Food only, excludes alcohol. Dine-in only. Not combinable with other offers." },
-      { key: "fc-reopen", type: "exclusive", kind: "amount_off", off: 500, title: "Grand reopening: $5 off $20+", description: "We just reopened with a bigger patio and a new salsa bar. Take $5 off any order of $20 or more.", images: [img("1565299585323-38d6b0865b47")], qty: 80, startsH: -18, endsH: 24 * 14, publishedH: 18, instructions: "Show your voucher before paying.", restrictions: "Minimum $20 food purchase. One per table." },
+      { key: "fc-reopen", type: "promotion", kind: "amount_off", off: 500, title: "Grand reopening: $5 off $20+", description: "We just reopened with a bigger patio and a new salsa bar. Take $5 off any order of $20 or more.", images: [img("1565299585323-38d6b0865b47")], qty: 80, startsH: -18, endsH: 24 * 14, publishedH: 18, instructions: "Show your voucher before paying.", restrictions: "Minimum $20 food purchase. One per table." },
     ],
   },
   {
@@ -132,7 +132,7 @@ const BUSINESSES: SeedBusiness[] = [
     cover: img("1604654894610-df63bc536371"), hours: weekdays("10:00", "19:00", H("09:00", "18:00")),
     deals: [
       { key: "gel", type: "appointment", title: "Gel manicure — canceled slot", description: "A client canceled, so this gel manicure is yours for much less. Includes shaping, cuticle care and your choice of color.", images: [img("1604654894610-df63bc536371"), img("1519014816548-bf5fe059798b")], orig: 4500, price: 2500, duration: 45, startsH: -2, publishedH: 2, slotsH: [{ d: 0, t: "16:30", cap: 1 }, { d: 1, t: "11:00", cap: 1 }, { d: 1, t: "15:30", cap: 1, taken: 1 }], instructions: "Arrive 5 minutes early and show your voucher at the front desk.", restrictions: "Removal of existing gel is $10 extra. 24-hour cancellation policy applies." },
-      { key: "fc-first", type: "exclusive", kind: "fixed_price", orig: 3000, price: 1800, title: "First-visit classic manicure", description: "New to The Nail Studio? Try our classic manicure (shape, cuticle care, polish) for $18.", images: [img("1519014816548-bf5fe059798b")], qty: 20, startsH: -40, endsH: 24 * 25, publishedH: 40, instructions: "Book by phone and mention Frugal Center, then show your voucher at check-in.", restrictions: "New clients only." },
+      { key: "fc-first", type: "promotion", kind: "fixed_price", orig: 3000, price: 1800, title: "First-visit classic manicure", description: "New to The Nail Studio? Try our classic manicure (shape, cuticle care, polish) for $18.", images: [img("1519014816548-bf5fe059798b")], qty: 20, startsH: -40, endsH: 24 * 25, publishedH: 40, instructions: "Book by phone and mention Frugal Center, then show your voucher at check-in.", restrictions: "New clients only." },
     ],
   },
   {
@@ -178,7 +178,7 @@ const BUSINESSES: SeedBusiness[] = [
     cover: img("1481627834876-b7833e8f5570"), hours: weekdays("10:00", "19:00", H("10:00", "19:00"), H("12:00", "17:00")),
     deals: [
       { key: "mornings", type: "slow_hours", kind: "percent", pct: 20, title: "20% off used books, weekday mornings", description: "Browse the stacks while it's quiet and take 20% off your used-book purchase.", images: [img("1481627834876-b7833e8f5570")], startsH: -96, endsH: 24 * 28, publishedH: 96, days: [1, 2, 3, 4, 5], window: ["10:00", "12:00"], instructions: "Show your voucher at checkout.", restrictions: "Used books only. Excludes rare and signed editions." },
-      { key: "fc-15", type: "exclusive", kind: "percent", pct: 15, title: "15% off new releases", description: "Fresh hardcovers and paperbacks from this season's list, 15% off for Frugal Center members.", images: [img("1481627834876-b7833e8f5570")], startsH: -60, endsH: 24 * 30, publishedH: 60, instructions: "Show your voucher at checkout.", restrictions: "New releases shelf only." },
+      { key: "fc-15", type: "promotion", kind: "percent", pct: 15, title: "15% off new releases", description: "Fresh hardcovers and paperbacks from this season's list, 15% off for Frugal Center members.", images: [img("1481627834876-b7833e8f5570")], startsH: -60, endsH: 24 * 30, publishedH: 60, instructions: "Show your voucher at checkout.", restrictions: "New releases shelf only." },
     ],
   },
   {
@@ -206,7 +206,7 @@ const BUSINESSES: SeedBusiness[] = [
     cover: img("1522163182402-834f871fd851"), hours: weekdays("06:00", "23:00", H("09:00", "22:00"), H("09:00", "20:00")),
     deals: [
       { key: "daypass", type: "slow_hours", kind: "fixed_price", title: "Off-peak day pass", description: "Climb all day for $12 when the walls are quiet. Shoe rental 50% off with this pass.", images: [img("1522163182402-834f871fd851")], orig: 2200, price: 1200, startsH: -50, endsH: 24 * 30, publishedH: 50, days: [1, 2, 3, 4], window: ["10:00", "15:00"], instructions: "Show your voucher at the front desk." },
-      { key: "fc-intro", type: "exclusive", kind: "fixed_price", orig: 6000, price: 3500, title: "Intro climb for two + gear", description: "Two day passes, shoe and harness rental, and a 20-minute belay intro with our staff.", images: [img("1522163182402-834f871fd851")], qty: 25, startsH: -20, endsH: 24 * 28, publishedH: 20, instructions: "Show your voucher at the front desk.", restrictions: "Both climbers must sign a waiver." },
+      { key: "fc-intro", type: "promotion", kind: "fixed_price", orig: 6000, price: 3500, title: "Intro climb for two + gear", description: "Two day passes, shoe and harness rental, and a 20-minute belay intro with our staff.", images: [img("1522163182402-834f871fd851")], qty: 25, startsH: -20, endsH: 24 * 28, publishedH: 20, instructions: "Show your voucher at the front desk.", restrictions: "Both climbers must sign a waiver." },
     ],
   },
   {
@@ -225,7 +225,7 @@ const BUSINESSES: SeedBusiness[] = [
     cover: img("1607860108855-64acf2078ed9"), hours: weekdays("08:00", "18:00", H("08:00", "17:00")),
     deals: [
       { key: "detail", type: "slow_hours", kind: "fixed_price", title: "Full interior detail, Tue–Thu mornings", description: "Vacuum, steam clean, leather conditioning and glass. Our mornings mid-week are wide open.", images: [img("1607860108855-64acf2078ed9")], orig: 12900, price: 7900, qty: 15, claimed: 2, startsH: -40, endsH: 24 * 18, publishedH: 40, days: [2, 3, 4], window: ["08:00", "12:00"], instructions: "Show your voucher at drop-off." },
-      { key: "fc-20off", type: "exclusive", kind: "amount_off", off: 2000, title: "$20 off any full detail", description: "Interior, exterior or the works: take $20 off any full detail package, any day.", images: [img("1607860108855-64acf2078ed9")], qty: 30, startsH: -50, endsH: 24 * 20, publishedH: 50, instructions: "Show your voucher at drop-off.", restrictions: "Full detail packages only." },
+      { key: "fc-20off", type: "promotion", kind: "amount_off", off: 2000, title: "$20 off any full detail", description: "Interior, exterior or the works: take $20 off any full detail package, any day.", images: [img("1607860108855-64acf2078ed9")], qty: 30, startsH: -50, endsH: 24 * 20, publishedH: 50, instructions: "Show your voucher at drop-off.", restrictions: "Full detail packages only." },
     ],
   },
   {

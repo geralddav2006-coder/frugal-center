@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertCircle, CalendarClock, ChevronLeft, Clock, Gem, Info, MapPin, Navigation, Package, ShieldCheck, Store } from "lucide-react";
+import { AlertCircle, CalendarClock, ChevronLeft, Clock, Info, Megaphone, MapPin, Navigation, Package, ShieldCheck, Store } from "lucide-react";
 import { getViewer } from "@/server/auth";
 import { getDb } from "@/server/db";
 import { getViewerLocation } from "@/server/location";
@@ -70,7 +70,7 @@ export default async function DealPage({ params }: Props) {
     priceOriginal: price.original,
     savingsLabel,
   };
-  const TypeIcon = d.type === "surplus" ? Package : d.type === "appointment" ? CalendarClock : d.type === "exclusive" ? Gem : Clock;
+  const TypeIcon = d.type === "surplus" ? Package : d.type === "appointment" ? CalendarClock : d.type === "promotion" ? Megaphone : Clock;
   const directions = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${d.address_line}, ${d.city}, ${d.state} ${d.zip}`)}`;
 
   return (
@@ -93,11 +93,7 @@ export default async function DealPage({ params }: Props) {
         <article className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="lime">{price.badge}</Badge>
-            {d.type === "exclusive" ? (
-              <Badge variant="ink"><Gem className="text-lime" aria-hidden /> Frugal Center exclusive</Badge>
-            ) : (
-              <Badge variant="soft"><TypeIcon aria-hidden /> {meta.label}</Badge>
-            )}
+            <Badge variant="soft"><TypeIcon aria-hidden /> {meta.label}</Badge>
             <Badge variant="outline">{categoryName(d.category_slug)}</Badge>
           </div>
           <h1 className="mt-3 text-[28px] leading-tight font-extrabold sm:text-4xl">{d.title}</h1>
@@ -112,13 +108,6 @@ export default async function DealPage({ params }: Props) {
               </p>
             </div>
           </Link>
-
-          {d.type === "exclusive" ? (
-            <p className="mt-5 flex items-start gap-2.5 rounded-2xl bg-ink p-4 text-[14px] leading-snug text-white/80">
-              <Gem className="mt-0.5 size-4 shrink-0 text-lime" aria-hidden />
-              <span><strong className="text-white">Only on Frugal Center.</strong> {d.business_name} offers this deal exclusively through Frugal Center, so you won&apos;t find it on other apps or at the counter.</span>
-            </p>
-          ) : null}
 
           {/* Type-specific availability */}
           <section className="mt-6 rounded-[var(--radius-card)] border border-line bg-paper p-5" aria-label="Availability">
@@ -138,7 +127,7 @@ export default async function DealPage({ params }: Props) {
               <p className="mt-2 text-[15px]">
                 {d.duration_minutes} minute appointment. Pick one of the specific open times {state.claimable ? "on the right" : "below"} — each is a real slot that opened up.
               </p>
-            ) : d.type === "exclusive" ? (
+            ) : d.type === "promotion" ? (
               <p className="mt-2 text-[15px]">
                 Valid any time the business is open, through <strong>{formatDateTime(d.ends_at, d.timezone)}</strong>.
                 {left != null ? ` ${left} of ${d.quantity_total} vouchers left.` : ""}

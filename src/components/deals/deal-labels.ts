@@ -10,7 +10,7 @@ export function availabilityLabel(d: Pick<DealCard, "type" | "quantity_total" | 
     return `${formatDayTime(d.next_slot_at, d.timezone)}${spots > 1 ? ` · ${spots} spots` : ""}`;
   }
   if (d.type === "slow_hours") return windowLabel(d) ?? "Off-peak hours";
-  if (d.type === "exclusive") {
+  if (d.type === "promotion") {
     const left = d.quantity_total == null ? null : d.quantity_total - d.claimed_count;
     if (left != null && left <= 0) return "Sold out";
     if (left != null && left <= 10) return `Only ${left} left`;

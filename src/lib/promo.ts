@@ -25,7 +25,7 @@ export function isPrintPiece(v: string | null | undefined): v is PrintPiece {
 /** Sign copy. The best message names the kind of deal the business actually runs. */
 export const PROMO_MESSAGES = {
   follow: { label: "Follow us", headline: "Scan to follow us on Frugal Center", sub: "Be the first to know about our deals." },
-  exclusive: { label: "Exclusive deals", headline: "Deals you won't find at the counter", sub: "Scan to follow us on Frugal Center for our exclusive offers." },
+  promotion: { label: "Promotions", headline: "Our latest promotions, right on your phone", sub: "Scan to follow us on Frugal Center and never miss a sale." },
   surplus: { label: "Leftovers", headline: "Our leftovers go out at a discount", sub: "Scan to follow us and catch them before they're gone." },
   appointment: { label: "Open slots", headline: "Cancellations happen. Grab the open slot.", sub: "Scan to follow us and get last-minute openings at a discount." },
   slow_hours: { label: "Quiet hours", headline: "Quiet hours, better prices", sub: "Scan to follow us and get our off-peak deals." },
@@ -50,8 +50,8 @@ export function checkoutLine(message: PromoMessage) {
       return "When someone cancels, we post the slot on Frugal Center at a discount. Scan this to hear first.";
     case "slow_hours":
       return "We run quiet-hour deals on Frugal Center. Scan this and you'll get a ping when they're on.";
-    case "exclusive":
-      return "We post deals on Frugal Center you can't get at the counter. Scan this to follow us.";
+    case "promotion":
+      return "We post our promotions on Frugal Center. Scan this and you'll get a ping when there's a new one.";
     default:
       return "We post deals on Frugal Center. Scan this and you'll get a ping when there's a new one.";
   }

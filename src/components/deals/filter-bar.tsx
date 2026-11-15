@@ -19,7 +19,7 @@ const TYPES = [
   { v: "surplus", label: "Surplus" },
   { v: "appointment", label: "Appointments" },
   { v: "slow_hours", label: "Off-peak" },
-  { v: "exclusive", label: "Exclusives" },
+  { v: "promotion", label: "Promotions" },
 ];
 
 export function FilterBar({ defaultRadius }: { defaultRadius: number }) {

@@ -103,9 +103,9 @@ export const slowHoursSchema = z.object({
   ends_at: localDateTime,
 });
 
-/** A general promotional discount offered only on Frugal Center. */
-export const exclusiveSchema = z.object({
-  type: z.literal("exclusive"),
+/** A general promotional discount valid between two dates. */
+export const promotionSchema = z.object({
+  type: z.literal("promotion"),
   ...common,
   discount_kind: z.enum(["percent", "amount_off", "fixed_price"]),
   percent_off: z.coerce.number().int().min(1).max(100).optional().nullable(),
@@ -117,7 +117,7 @@ export const exclusiveSchema = z.object({
   ends_at: localDateTime,
 });
 
-export const dealSchema = z.discriminatedUnion("type", [surplusSchema, appointmentSchema, slowHoursSchema, exclusiveSchema]);
+export const dealSchema = z.discriminatedUnion("type", [surplusSchema, appointmentSchema, slowHoursSchema, promotionSchema]);
 export type DealInput = z.input<typeof dealSchema>;
 export type DealParsed = z.output<typeof dealSchema>;
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  BarChart3, Bell, CalendarClock, Check, Clock, Gem, Infinity as InfinityIcon, MapPin, Package, Percent, QrCode, Smartphone, Sparkles,
+  BarChart3, Bell, CalendarClock, Check, Clock, Infinity as InfinityIcon, MapPin, Megaphone, Package, Percent, QrCode, Smartphone, Sparkles,
 } from "lucide-react";
 import { Logo } from "@/components/brand";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { getViewer } from "@/server/auth";
 
 export const metadata: Metadata = {
   title: "Frugal Center for Business — $29/month, no commissions",
-  description: "Fill cancellations, sell surplus inventory and bring customers in during slow hours with exclusive local deals. Flat $29/month. No commissions.",
+  description: "Fill cancellations, sell surplus inventory and bring customers in during slow hours with local deals. Flat $29/month. No commissions.",
 };
 
 const BENEFITS = [
@@ -17,7 +17,7 @@ const BENEFITS = [
   { icon: Percent, title: "No sales commissions", body: "Customers pay you directly. You keep 100% of every sale." },
   { icon: MapPin, title: "Reach nearby customers", body: "Your deals show up for people within minutes of your door." },
   { icon: Bell, title: "Notify your followers", body: "Followers get an alert the moment you publish a new deal." },
-  { icon: Gem, title: "Run exclusive promos", body: "Post a discount only on Frugal Center. It gets an Exclusive badge and its own section." },
+  { icon: Megaphone, title: "Run promotions", body: "Post any discount between two dates: grand openings, seasonal sales, new-customer offers." },
   { icon: QrCode, title: "QR and code redemption", body: "Scan with your phone camera or type the code. Secure and instant." },
   { icon: BarChart3, title: "Performance analytics", body: "See claims, redemptions and confirmed revenue for every offer." },
   { icon: Smartphone, title: "No special hardware", body: "Runs in the browser on the phone or tablet you already have." },
@@ -61,7 +61,7 @@ export default async function ForBusinessPage() {
               Turn empty time slots and unsold inventory into <span className="text-lime-ink">revenue.</span>
             </h1>
             <p className="mx-auto mt-4 max-w-[34ch] text-[16px] leading-relaxed text-muted sm:mx-0 sm:mt-5 sm:max-w-xl sm:text-lg">
-              Fill cancellations, sell surplus inventory, and bring customers through your door with exclusive local deals.
+              Fill cancellations, sell surplus inventory, and bring customers through your door with local deals.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row">
               <Button asChild variant="lime" size="lg" className="w-full sm:w-auto"><Link href={startHref}>{ctaLabel}</Link></Button>
@@ -133,7 +133,7 @@ export default async function ForBusinessPage() {
               { icon: Package, t: "Surplus inventory", b: "Bakery leftovers, extra flowers, overstock retail. Set a quantity and a pickup window." },
               { icon: CalendarClock, t: "Canceled appointments", b: "Nail, hair, massage and training slots. List the exact open times and capacity." },
               { icon: Clock, t: "Slow business hours", b: "Afternoon lulls and off-peak periods. Choose days, hours and a discount." },
-              { icon: Gem, t: "Frugal Center exclusives", b: "Any promotional discount you want to run, offered only on Frugal Center. Grand openings, seasonal sales, new-customer offers." },
+              { icon: Megaphone, t: "Promotions", b: "Any promotional discount you want to run between two dates. Grand openings, seasonal sales, new-customer offers." },
             ].map(({ icon: Icon, t, b }) => (
               <div key={t} className="w-[78%] shrink-0 snap-center rounded-[var(--radius-card)] border border-line bg-white p-5 sm:w-auto sm:p-6">
                 <span className="grid size-11 place-items-center rounded-xl bg-lime-soft"><Icon className="size-5 text-lime-ink" aria-hidden /></span>

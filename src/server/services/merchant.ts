@@ -298,7 +298,7 @@ function normalizeDeal(raw: DealInput, tz: string): NormalizedDeal {
       ends_at: slots.at(-1)!.starts_at,
     };
   } else {
-    // Off-peak offers and exclusives: percent off, amount off, or a special price.
+    // Off-peak offers and promotions: percent off, amount off, or a special price.
     let pricing: Pick<NormalizedDeal, "original_price_cents" | "deal_price_cents" | "percent_off" | "amount_off_cents">;
     if (d.discount_kind === "percent") {
       if (!d.percent_off) throw new DomainError("invalid", "Enter the percentage off.");
@@ -311,7 +311,7 @@ function normalizeDeal(raw: DealInput, tz: string): NormalizedDeal {
       pricing = { original_price_cents: d.original_price!, deal_price_cents: d.deal_price!, percent_off: null, amount_off_cents: null };
     }
     const dates = { starts_at: zonedInputToDate(d.starts_at, tz), ends_at: zonedInputToDate(d.ends_at, tz) };
-    if (d.type === "exclusive") {
+    if (d.type === "promotion") {
       out = { ...base, ...pricing, ...dates, discount_kind: d.discount_kind, quantity_total: d.quantity_total ?? null };
     } else {
       if (d.window_end <= d.window_start) throw new DomainError("invalid", "The end time must be after the start time.");

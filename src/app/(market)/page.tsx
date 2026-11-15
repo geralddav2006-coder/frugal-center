@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Bell, CalendarClock, Check, Clock, Gem, Heart, Map, MapPin, Sparkles, Store, Zap } from "lucide-react";
+import { Bell, CalendarClock, Check, Clock, Heart, Map, MapPin, Sparkles, Store, Zap } from "lucide-react";
 import { getViewer } from "@/server/auth";
 import { getDb } from "@/server/db";
 import { getViewerLocation } from "@/server/location";
@@ -158,12 +158,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <DealRail title="Deals Near You" subtitle={`Closest first, within ${loc.radius} miles`} href={explore({ sort: "nearest" })} icon={<MapPin className="size-5" aria-hidden />}>
               {rail(s.nearYou, true)}
             </DealRail>
-
-            {s.exclusives.length ? (
-              <DealRail title="Exclusives" subtitle="Deals you'll only find on Frugal Center" href={explore({ exclusive: "1" })} icon={<Gem className="size-5 text-lime-ink" aria-hidden />}>
-                {rail(s.exclusives)}
-              </DealRail>
-            ) : null}
 
             {s.endingSoon.length ? (
               <DealRail title="Ending Soon" subtitle="Grab these before they're gone" href={explore({ sort: "ending" })} icon={<Clock className="size-5" aria-hidden />}>

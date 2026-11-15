@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarClock, Clock, Eye, Gem, Loader2, Lock, Package, Plus, Send, Trash2 } from "lucide-react";
+import { CalendarClock, Clock, Eye, Loader2, Lock, Megaphone, Package, Plus, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { saveDealAction } from "@/app/actions/merchant";
 import { DEAL_TYPE_META, type DealType, type DiscountKind } from "@/lib/deals";
@@ -43,7 +43,7 @@ const TYPES: { type: DealType; icon: typeof Package; examples: string }[] = [
   { type: "surplus", icon: Package, examples: "Bakery leftovers, extra flowers, unsold retail" },
   { type: "appointment", icon: CalendarClock, examples: "Canceled nail, hair, massage or training slots" },
   { type: "slow_hours", icon: Clock, examples: "Afternoon specials, off-peak services" },
-  { type: "exclusive", icon: Gem, examples: "A promo only on Frugal Center: grand openings, seasonal sales, new-customer offers" },
+  { type: "promotion", icon: Megaphone, examples: "Grand openings, seasonal sales, new-customer offers" },
 ];
 
 export function DealEditor({
@@ -69,7 +69,7 @@ export function DealEditor({
   const [pending, start] = useTransition();
   const set = <K extends keyof EditorValue>(k: K, val: EditorValue[K]) => setV((x) => ({ ...x, [k]: val }));
   const isPublished = status === "published" || status === "paused";
-  const flexible = v.type === "slow_hours" || v.type === "exclusive"; // percent, amount off or special price
+  const flexible = v.type === "slow_hours" || v.type === "promotion"; // percent, amount off or special price
 
   const now = useNow();
   const startsInFuture = useMemo(() => {
@@ -90,7 +90,7 @@ export function DealEditor({
           {TYPES.map(({ type, icon: Icon, examples }) => (
             <button key={type} type="button" onClick={() => set("type", type)}
               className="group rounded-[var(--radius-card)] border border-line bg-white p-6 text-left transition hover:border-ink hover:shadow-[var(--shadow-soft)]">
-              <span className={cn("grid size-12 place-items-center rounded-2xl transition group-hover:bg-lime", type === "exclusive" ? "bg-ink text-lime group-hover:text-ink" : "bg-mist")}><Icon className="size-6" aria-hidden /></span>
+              <span className={cn("grid size-12 place-items-center rounded-2xl transition group-hover:bg-lime", "bg-mist")}><Icon className="size-6" aria-hidden /></span>
               <p className="mt-4 text-lg font-extrabold">{DEAL_TYPE_META[type].label}</p>
               <p className="mt-1 text-sm text-muted">{examples}</p>
             </button>
@@ -122,9 +122,9 @@ export function DealEditor({
       original_price: v.discount_kind === "fixed_price" ? v.original_price : null,
       deal_price: v.discount_kind === "fixed_price" ? v.deal_price : null,
     };
-    if (v.type === "exclusive") {
+    if (v.type === "promotion") {
       return {
-        type: "exclusive" as const, ...common, ...flexiblePrice,
+        type: "promotion" as const, ...common, ...flexiblePrice,
         quantity_total: v.quantity_total ? Number(v.quantity_total) : null, starts_at: v.starts_at, ends_at: v.ends_at,
       };
     }
@@ -195,8 +195,8 @@ export function DealEditor({
           {flexible ? (
             <Field label="Discount type" htmlFor="d-kind">
               <NativeSelect id="d-kind" value={v.discount_kind} disabled={locked} onChange={(e) => set("discount_kind", e.target.value as DiscountKind)}>
-                <option value="percent">Percentage off {v.type === "exclusive" ? "the purchase" : "the bill"}</option>
-                <option value="amount_off">Fixed amount off {v.type === "exclusive" ? "the purchase" : "the bill"}</option>
+                <option value="percent">Percentage off {v.type === "promotion" ? "the purchase" : "the bill"}</option>
+                <option value="amount_off">Fixed amount off {v.type === "promotion" ? "the purchase" : "the bill"}</option>
                 <option value="fixed_price">Special price for an item or service</option>
               </NativeSelect>
             </Field>
@@ -290,7 +290,7 @@ export function DealEditor({
           </Card>
         ) : null}
 
-        {v.type === "exclusive" ? (
+        {v.type === "promotion" ? (
           <Card title="When it's valid">
             <p className="-mt-2 text-sm text-muted">Customers can use it any time you&apos;re open between these dates.</p>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -370,7 +370,7 @@ function cents(s: string) {
 }
 
 function previewDeal(v: EditorValue, businessName: string, cover: string | null, timezone: string) {
-  const flexible = v.type === "slow_hours" || v.type === "exclusive";
+  const flexible = v.type === "slow_hours" || v.type === "promotion";
   const fixed = !flexible || v.discount_kind === "fixed_price";
   const orig = cents(v.original_price);
   const price = cents(v.deal_price);

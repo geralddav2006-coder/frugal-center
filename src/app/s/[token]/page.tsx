@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const s = await getSharedSavings(await getDb(), (await params).token);
   if (!s) return { title: "Frugal Center", robots: { index: false } };
   const title = `${s.firstName} has saved ${formatMoney(s.totalCents)} with Frugal Center`;
-  return { title, description: "Exclusive deals from local businesses — free for everyone.", robots: { index: false }, openGraph: { title } };
+  return { title, description: "Deals from local businesses — free for everyone.", robots: { index: false }, openGraph: { title } };
 }
 
 export default async function SharedSavingsPage({ params }: Props) {
@@ -30,7 +30,7 @@ export default async function SharedSavingsPage({ params }: Props) {
         </p>
         <div aria-hidden className="absolute -right-16 -bottom-16 size-56 rounded-full bg-lime/20 blur-3xl" />
       </div>
-      <p className="mt-8 max-w-sm text-center text-muted">Frugal Center finds exclusive discounts from local businesses near you. Always free.</p>
+      <p className="mt-8 max-w-sm text-center text-muted">Frugal Center finds discounts from local businesses near you. Always free.</p>
       <Button asChild variant="lime" size="lg" className="mt-5"><Link href="/signup">Start saving</Link></Button>
     </div>
   );
