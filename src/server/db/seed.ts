@@ -83,7 +83,8 @@ const BUSINESSES: SeedBusiness[] = [
     cover: img("1509440159596-0249088772ff"), hours: weekdays("06:30", "18:00", H("07:00", "16:00"), H("07:00", "14:00")),
     deals: [
       { key: "pastry-box", type: "surplus", title: "Surprise Pastry Box", description: "A box of 5–7 of today's pastries — usually croissants, morning buns, scones and a cookie or two. Contents vary by what's left on the shelf.", images: [img("1555507036-ab1f4038808a"), img("1509440159596-0249088772ff")], orig: 2000, price: 900, qty: 12, claimed: 4, startsH: -3, endsH: 7, publishedH: 3, instructions: "Show your voucher at the counter. Pick up between 4 and 6 PM.", restrictions: "Contents vary. May contain nuts, dairy and gluten." },
-      { key: "sourdough", type: "surplus", title: "Day-old sourdough loaves", description: "Yesterday's naturally leavened country loaves — perfect for toast, French toast or croutons.", images: [img("1585478259715-876acc5be8eb")], orig: 900, price: 400, qty: 8, claimed: 2, startsH: -20, endsH: 30, publishedH: 20, instructions: "Ask for the day-old basket at the register." },
+      { key: "sourdough", type: "surplus", title: "Day-old sourdough loaves", description: "Yesterday's naturally leavened country loaves — perfect for toast, French toast or croutons.", images: [img("1509440159596-0249088772ff")], orig: 900, price: 400, qty: 8, claimed: 2, startsH: -20, endsH: 30, publishedH: 20, instructions: "Ask for the day-old basket at the register." },
+      { key: "fc-pie", type: "promotion", kind: "amount_off", off: 500, title: "$5 off Thanksgiving pies", description: "Apple, pumpkin or pecan, baked fresh for the holiday. Pre-order any whole pie and take $5 off.", images: [img("1621743478914-cc8a86d7e7b5"), img("1535920527002-b35e96722eb9")], qty: 40, claimed: 11, startsH: -12, endsH: 24 * 8, publishedH: 12, instructions: "Pre-order at the counter or by phone, then show your voucher at pickup.", restrictions: "Whole pies only. Order by Tuesday for Wednesday pickup." },
     ],
   },
   {
@@ -113,6 +114,7 @@ const BUSINESSES: SeedBusiness[] = [
     cover: img("1513104890138-7c749659a591"), hours: weekdays("16:00", "22:00", H("12:00", "23:00"), H("12:00", "21:00")),
     deals: [
       { key: "pies", type: "surplus", title: "End-of-night whole pies", description: "Margherita or pepperoni pies made from our leftover dough — still blistered, still great.", images: [img("1574071318508-1cdbab80d002"), img("1513104890138-7c749659a591")], orig: 2200, price: 800, qty: 6, claimed: 1, startsH: -1, endsH: 5, publishedH: 1, instructions: "Pick up at the host stand between 9 and 10 PM." },
+      { key: "lunch", type: "slow_hours", kind: "fixed_price", title: "Two slices + a drink, $6", description: "Any two slices from the case and a fountain drink during our quiet weekday lunch.", images: [img("1513104890138-7c749659a591")], orig: 950, price: 600, startsH: -30, endsH: 24 * 21, publishedH: 30, days: [1, 2, 3, 4, 5], window: ["11:00", "14:00"], instructions: "Show your voucher when you order." },
     ],
   },
   {
@@ -142,6 +144,7 @@ const BUSINESSES: SeedBusiness[] = [
     cover: img("1503951914875-452162b0f3f1"), hours: weekdays("09:00", "19:00", H("09:00", "17:00")),
     deals: [
       { key: "cut", type: "appointment", title: "Haircut + hot towel finish", description: "Two chairs opened up this week. Any cut plus a hot towel and neck shave.", images: [img("1585747860715-2ba37e788b70"), img("1503951914875-452162b0f3f1")], orig: 3800, price: 2000, duration: 40, startsH: -6, publishedH: 6, slotsH: [{ d: 0, t: "17:00", cap: 1 }, { d: 1, t: "10:20", cap: 2 }], instructions: "Show your voucher when you check in." },
+      { key: "midweek", type: "slow_hours", kind: "amount_off", off: 800, title: "$8 off cuts, Tue & Wed mornings", description: "Our chairs are wide open midweek mornings. Walk in or book ahead and take $8 off any cut.", images: [img("1503951914875-452162b0f3f1")], startsH: -20, endsH: 24 * 28, publishedH: 20, days: [2, 3], window: ["09:00", "12:00"], instructions: "Show your voucher when you check in.", restrictions: "One per customer per visit." },
     ],
   },
   {
@@ -151,6 +154,7 @@ const BUSINESSES: SeedBusiness[] = [
     cover: img("1544161515-4ab6ce6db874"), hours: weekdays("10:00", "20:00", H("10:00", "18:00"), H("11:00", "17:00")),
     deals: [
       { key: "deep", type: "appointment", title: "60-minute deep tissue massage", description: "Last-minute openings with our senior therapists. Includes aromatherapy add-on.", images: [img("1544161515-4ab6ce6db874"), img("1540555700478-4be289fbecef")], orig: 11000, price: 6500, duration: 60, startsH: -4, publishedH: 4, slotsH: [{ d: 1, t: "13:00", cap: 1 }, { d: 2, t: "18:00", cap: 1 }], instructions: "Arrive 10 minutes early to fill out a short intake form." , restrictions: "Gratuity not included." },
+      { key: "fc-first", type: "promotion", kind: "percent", pct: 20, title: "20% off your first massage", description: "New to Stillwater? Take 20% off any 60- or 90-minute massage on your first visit.", images: [img("1540555700478-4be289fbecef")], qty: 30, startsH: -36, endsH: 24 * 30, publishedH: 36, instructions: "Book by phone and mention Frugal Center, then show your voucher at check-in.", restrictions: "New clients only. Gratuity not included." },
     ],
   },
   {
@@ -160,6 +164,7 @@ const BUSINESSES: SeedBusiness[] = [
     cover: img("1506126613408-eca07ce68773"), hours: weekdays("06:00", "21:00", H("08:00", "14:00"), H("08:00", "14:00")),
     deals: [
       { key: "midday", type: "slow_hours", kind: "fixed_price", title: "Midday class drop-in", description: "Any class that starts between 11 AM and 2 PM on weekdays for $10. Mats provided.", images: [img("1544367567-0f2fcb009e0b"), img("1506126613408-eca07ce68773")], orig: 2200, price: 1000, startsH: -72, endsH: 24 * 21, publishedH: 72, days: [1, 2, 3, 4, 5], window: ["11:00", "14:00"], instructions: "Show your voucher at check-in.", restrictions: "New and returning students welcome. One class per voucher." },
+      { key: "fc-intro", type: "promotion", kind: "fixed_price", orig: 6600, price: 3000, title: "New student: 3 classes for $30", description: "Try any three classes in your first month, from gentle flow to power yoga. Mats provided.", images: [img("1506126613408-eca07ce68773")], qty: 25, claimed: 3, startsH: -15, endsH: 24 * 30, publishedH: 15, instructions: "Show your voucher at your first check-in.", restrictions: "New students only. Classes must be used within 30 days." },
     ],
   },
   {
@@ -169,6 +174,7 @@ const BUSINESSES: SeedBusiness[] = [
     cover: img("1487530811176-3780de880c2d"), hours: weekdays("09:00", "18:00", H("09:00", "17:00")),
     deals: [
       { key: "bouquet", type: "surplus", title: "End-of-day market bouquet", description: "A hand-tied bouquet of today's remaining stems. Gorgeous for a few more days at home.", images: [img("1490750967868-88aa4486c946"), img("1487530811176-3780de880c2d")], orig: 3500, price: 1500, qty: 5, claimed: 2, startsH: -2, endsH: 4, publishedH: 2, instructions: "Pick up at the shop before close." },
+      { key: "fc-centerpiece", type: "promotion", kind: "amount_off", off: 1000, title: "$10 off a Thanksgiving centerpiece", description: "Seasonal arrangements with mums, eucalyptus and mini pumpkins, made to order for your table.", images: [img("1487530811176-3780de880c2d")], qty: 20, claimed: 4, startsH: -8, endsH: 24 * 8, publishedH: 8, instructions: "Order in the shop or by phone and show your voucher at pickup.", restrictions: "Centerpieces $45 and up." },
     ],
   },
   {
@@ -188,6 +194,7 @@ const BUSINESSES: SeedBusiness[] = [
     cover: img("1441986300917-64674bd600d8"), hours: weekdays("11:00", "19:00", H("10:00", "20:00"), H("11:00", "18:00")),
     deals: [
       { key: "tees", type: "surplus", title: "Sample sale organic tees", description: "Overstock and sample organic cotton tees in assorted colors, sizes XS–XL while they last.", images: [img("1556905055-8f358a7a47b2"), img("1441986300917-64674bd600d8")], orig: 3200, price: 1200, qty: 20, claimed: 7, startsH: -30, endsH: 48, publishedH: 30, instructions: "Show your voucher at the register." },
+      { key: "mornings", type: "slow_hours", kind: "percent", pct: 15, title: "15% off weekday mornings", description: "Shop before the lunch crowd and take 15% off everything in the store.", images: [img("1441986300917-64674bd600d8")], startsH: -44, endsH: 24 * 21, publishedH: 44, days: [1, 2, 3, 4, 5], window: ["10:00", "12:00"], instructions: "Show your voucher at the register.", restrictions: "Excludes gift cards." },
     ],
   },
   {
@@ -197,6 +204,7 @@ const BUSINESSES: SeedBusiness[] = [
     cover: img("1565193566173-7a0ee3dbe261"), hours: weekdays("12:00", "21:00", H("10:00", "21:00"), H("10:00", "18:00")),
     deals: [
       { key: "wheel", type: "appointment", title: "Intro to the wheel — 2 open seats", description: "Two seats opened up in our 2-hour beginner class. Clay, glazing and firing included.", images: [img("1565193566173-7a0ee3dbe261")], orig: 6500, price: 3500, duration: 120, startsH: -8, publishedH: 8, slotsH: [{ d: 1, t: "18:30", cap: 2 }], instructions: "Arrive 10 minutes early and wear clothes that can get messy." },
+      { key: "seconds", type: "surplus", title: "Kiln seconds: mugs and bowls", description: "Handmade mugs and bowls with tiny glaze flaws. Totally usable, just not quite perfect.", images: [img("1610701596007-11502861dcfa"), img("1578749556568-bc2c40e68b61")], orig: 2800, price: 1000, qty: 12, claimed: 5, startsH: -24, endsH: 48, publishedH: 24, instructions: "Show your voucher at the front desk and pick from the seconds shelf." },
     ],
   },
   {
@@ -216,6 +224,7 @@ const BUSINESSES: SeedBusiness[] = [
     cover: img("1516734212186-a967f81ad0d7"), hours: weekdays("08:00", "18:00", H("09:00", "16:00")),
     deals: [
       { key: "bath", type: "appointment", title: "Bath & brush — canceled slot", description: "Full bath, blow-dry, brush-out, nail trim and ear cleaning for dogs up to 50 lb.", images: [img("1516734212186-a967f81ad0d7")], orig: 5500, price: 3000, duration: 90, startsH: -3, publishedH: 3, slotsH: [{ d: 1, t: "09:30", cap: 1 }], instructions: "Bring proof of rabies vaccination." },
+      { key: "nails", type: "slow_hours", kind: "fixed_price", title: "$10 walk-in nail trims, Tue–Thu", description: "Quick nail trim and file for dogs of any size during our quiet midweek afternoons. No appointment needed.", images: [img("1516734212186-a967f81ad0d7")], orig: 2000, price: 1000, startsH: -52, endsH: 24 * 30, publishedH: 52, days: [2, 3, 4], window: ["13:00", "16:00"], instructions: "Walk in and show your voucher at the front desk." },
     ],
   },
   {
@@ -236,6 +245,7 @@ const BUSINESSES: SeedBusiness[] = [
     deals: [
       { key: "seconds", type: "surplus", title: "Seconds apples, half-peck bag", description: "Apples with a bump or a bruise, picked this week. Perfect for pies, sauce and snacking.", images: [img("1569870499705-504209102861"), img("1560806887-1e4cd0b6cbd6")], orig: 900, price: 400, qty: 15, claimed: 6, startsH: -10, endsH: 30, publishedH: 10, instructions: "Show your voucher at the register and grab a bag from the seconds bin." },
       { key: "produce-box", type: "surplus", title: "End-of-day produce box", description: "A box of whatever's left on the tables: usually greens, carrots, squash and a few apples.", images: [img("1488459716781-31db52582fe9"), img("1471193945509-9ad0617afabf")], orig: 2500, price: 1200, qty: 8, claimed: 2, startsH: -4, endsH: 6, publishedH: 4, instructions: "Pick up at the stand between 4 and 6 PM." },
+      { key: "pumpkins", type: "surplus", title: "Pie pumpkins & squash, $1 each", description: "The last of the fall harvest: sugar pumpkins, butternut and acorn squash. Great for soups and pies.", images: [img("1509622905150-fa66d3906e09"), img("1506917728037-b6af01a7d403")], orig: 300, price: 100, qty: 40, claimed: 9, startsH: -18, endsH: 54, publishedH: 18, instructions: "Show your voucher at the register. One voucher covers up to 5 pieces.", restrictions: "While supplies last." },
     ],
   },
   {
@@ -245,6 +255,7 @@ const BUSINESSES: SeedBusiness[] = [
     cover: img("1622597467836-f3285f2131b8"), hours: weekdays("07:00", "17:00", H("08:00", "16:00"), H("08:00", "15:00")),
     deals: [
       { key: "juice", type: "surplus", title: "Cold-pressed juice 3-pack", description: "Three 12 oz juices pressed this morning. Best enjoyed within 2 days.", images: [img("1622597467836-f3285f2131b8")], orig: 2400, price: 1000, qty: 9, claimed: 5, startsH: -6, endsH: 3, publishedH: 6, instructions: "Pick up at the counter before 5 PM." },
+      { key: "smoothies", type: "slow_hours", kind: "amount_off", off: 200, title: "$2 off smoothies after 3 PM", description: "Any 16 oz smoothie, $2 off during our slow late-afternoon hours.", images: [img("1505252585461-04db1eb84625")], startsH: -26, endsH: 24 * 21, publishedH: 26, days: [1, 2, 3, 4, 5, 6], window: ["15:00", "18:00"], instructions: "Show your voucher when you order." },
     ],
   },
 ];
