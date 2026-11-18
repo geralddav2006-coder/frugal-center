@@ -21,7 +21,7 @@ import {
   type Preferences,
 } from "@/server/services/engagement";
 import { enableSavingsShare, disableSavingsShare } from "@/server/services/savings";
-import { RADIUS_OPTIONS, writeLocationCookie } from "@/server/location";
+import { RADIUS_OPTIONS, inMarket, writeLocationCookie } from "@/server/location";
 import { areaLabel } from "@/lib/utils";
 import { env } from "@/server/env";
 import { SIGN_COOKIE } from "@/lib/promo";
@@ -94,6 +94,12 @@ export async function setLocationAction(input: { zip?: string; lat?: number; lng
       }
       loc = { lat: area.lat, lng: area.lng, label: areaLabel(area), zip, source: "zip" };
     } else if (typeof input.lat === "number" && typeof input.lng === "number" && Math.abs(input.lat) <= 90 && Math.abs(input.lng) <= 180) {
+      if (!inMarket(input.lat, input.lng)) {
+        throw new DomainError(
+          "not_launched",
+          "You're outside the area Frugal Center serves so far. It's starting in Dracut and nearby towns. Pick a town from the list to look around.",
+        );
+      }
       loc = { lat: input.lat, lng: input.lng, label: "Current location", zip: null, source: "gps" };
     } else {
       throw new DomainError("invalid", "Choose a location.");

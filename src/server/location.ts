@@ -24,6 +24,17 @@ export const DEFAULT_LOCATION: ViewerLocation = {
   source: "default",
 };
 
+/** Saved locations farther than this from the market (e.g. left over from an
+ * earlier launch city) are ignored, so the app falls back to Dracut Center. */
+export const MARKET_RADIUS_MILES = 40;
+
+export function inMarket(lat: number, lng: number) {
+  const r = (d: number) => (d * Math.PI) / 180;
+  const dLat = r(lat - DEFAULT_LOCATION.lat), dLng = r(lng - DEFAULT_LOCATION.lng);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(r(DEFAULT_LOCATION.lat)) * Math.cos(r(lat)) * Math.sin(dLng / 2) ** 2;
+  return 3958.8 * 2 * Math.asin(Math.sqrt(a)) <= MARKET_RADIUS_MILES;
+}
+
 export function parseLocationCookie(raw: string | undefined): ViewerLocation | null {
   if (!raw) return null;
   try {
@@ -44,8 +55,8 @@ export function parseLocationCookie(raw: string | undefined): ViewerLocation | n
 
 export async function getViewerLocation(viewer: Viewer | null): Promise<ViewerLocation> {
   const fromCookie = parseLocationCookie((await cookies()).get(LOCATION_COOKIE)?.value);
-  if (fromCookie) return fromCookie;
-  if (viewer?.homeLat != null && viewer.homeLng != null) {
+  if (fromCookie && inMarket(fromCookie.lat, fromCookie.lng)) return fromCookie;
+  if (viewer?.homeLat != null && viewer.homeLng != null && inMarket(viewer.homeLat, viewer.homeLng)) {
     return {
       lat: viewer.homeLat,
       lng: viewer.homeLng,

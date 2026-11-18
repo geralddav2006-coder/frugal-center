@@ -488,12 +488,31 @@ export async function localCreateUser(db: Db): Promise<CreateUser> {
   };
 }
 
-/** Local demo: seed once, on an empty database. */
+/** Bump when the sample data changes, so existing local demos pick it up. */
+const DEMO_SEED_MARK = "fc-demo-seed:dracut-2026-11-18";
+
+async function markDemoSeed(db: Db) {
+  await db.query(`comment on table public.businesses is '${DEMO_SEED_MARK}'`);
+}
+
+/**
+ * Local demo: seed an empty database, and refresh an older copy of the sample
+ * data (e.g. the earlier Austin set) when the sample data has changed.
+ * A local database that holds no sample businesses is left alone.
+ */
 export async function ensureDemoSeed(db: Db) {
   if (process.env.FC_SKIP_SEED === "1") return;
-  const [row] = await db.query<{ n: number }>(`select count(*)::int as n from public.businesses`);
-  if (row!.n > 0) return;
-  await seedDemoData(db, await localCreateUser(db));
+  const [row] = await db.query<{ n: number; demo: number; mark: string | null }>(
+    `select (select count(*)::int from public.businesses) as n,
+            (select count(*)::int from public.businesses where slug in ('broadway-bakery', 'main-street-bakery')) as demo,
+            obj_description('public.businesses'::regclass, 'pg_class') as mark`,
+  );
+  if (row!.n === 0) {
+    await seedDemoData(db, await localCreateUser(db));
+    await markDemoSeed(db);
+  } else if (row!.mark !== DEMO_SEED_MARK && row!.demo > 0) {
+    await resetDemoData(db);
+  }
 }
 
 /** Local demo: wipe and reseed (used by the admin "Reset demo data" button and `npm run db:reset`). */
@@ -506,4 +525,5 @@ export async function resetDemoData(db: Db) {
   );
   await db.query(`delete from auth.users`);
   await seedDemoData(db, await localCreateUser(db));
+  await markDemoSeed(db);
 }
