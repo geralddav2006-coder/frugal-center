@@ -22,7 +22,8 @@ export async function proxy(request: NextRequest) {
       },
     },
   });
-  await supabase.auth.getUser();
+  // Refresh the session, but never let a slow auth service hold up the page.
+  await Promise.race([supabase.auth.getUser().catch(() => null), new Promise((r) => setTimeout(r, 4000))]);
   return response;
 }
 
