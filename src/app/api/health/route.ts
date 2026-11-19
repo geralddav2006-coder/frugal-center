@@ -72,6 +72,7 @@ export async function GET(req: NextRequest) {
       supabase: integrations.supabase,
       supabaseHost: env.supabaseUrl ? new URL(env.supabaseUrl).host : null,
       dbPort: env.databaseUrl ? (new URL(env.databaseUrl).port || "5432") : null,
+      dbPooler: env.databaseUrl ? ((new URL(env.databaseUrl).port || "5432") === "6543" ? "transaction" : "session or direct") : null,
       stripe: integrations.stripe,
       email: integrations.resend,
       push: integrations.push,

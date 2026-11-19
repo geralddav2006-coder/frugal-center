@@ -49,10 +49,11 @@ export async function createPostgresDb(rawUrl: string, opts: { queryTimeoutMs?: 
   const { default: postgres } = await import("postgres");
   const queryMs = opts.queryTimeoutMs ?? QUERY_TIMEOUT_MS;
   const txMs = opts.txTimeoutMs ?? TX_TIMEOUT_MS;
-  // Supabase pooler (transaction mode) does not support prepared statements.
+  // Supabase's transaction pooler doesn't support prepared statements, and older versions of it
+  // hang on pipelined queries, so each connection runs one query at a time (max_pipeline: 1).
   const make = () =>
     postgres(cleanDatabaseUrl(rawUrl), {
-      prepare: false, max: 3, idle_timeout: 5, max_lifetime: 300, connect_timeout: 10, onnotice: () => {}, ...sslFor(rawUrl),
+      prepare: false, max: 4, max_pipeline: 1, idle_timeout: 5, max_lifetime: 300, connect_timeout: 10, onnotice: () => {}, ...sslFor(rawUrl),
     });
   let sql = make();
   let lastUsed = 0;

@@ -5,15 +5,35 @@ import path from "node:path";
 import postgres from "postgres";
 
 const e = process.env;
-const raw = e.DATABASE_URL_UNPOOLED || e.POSTGRES_URL_NON_POOLING || e.DATABASE_URL || e.POSTGRES_URL;
-if (!raw) {
+// A direct or session connection is best for schema changes; if it's unavailable (for example
+// the session pooler is full), fall back to the transaction pooler.
+const candidates = [...new Set([e.DATABASE_URL_UNPOOLED, e.POSTGRES_URL_NON_POOLING, e.DATABASE_URL, e.POSTGRES_URL].filter(Boolean))];
+if (!candidates.length) {
   console.log("[migrate] No database configured; skipping (local demo mode migrates itself).");
   process.exit(0);
 }
-const u = new URL(raw);
-u.search = "";
-const local = ["localhost", "127.0.0.1"].includes(u.hostname);
-const sql = postgres(u.toString(), { prepare: false, max: 1, onnotice: () => {}, ...(local ? {} : { ssl: "require" }) });
+function open(raw) {
+  const u = new URL(raw);
+  u.search = "";
+  const local = ["localhost", "127.0.0.1"].includes(u.hostname);
+  return postgres(u.toString(), { prepare: false, max: 1, max_pipeline: 1, connect_timeout: 15, onnotice: () => {}, ...(local ? {} : { ssl: "require" }) });
+}
+let sql;
+for (const raw of candidates) {
+  const attempt = open(raw);
+  try {
+    await attempt`select 1`;
+    sql = attempt;
+    break;
+  } catch (err) {
+    console.warn(`[migrate] couldn't connect on port ${new URL(raw).port || 5432}: ${err.message}`);
+    await attempt.end({ timeout: 0 }).catch(() => {});
+  }
+}
+if (!sql) {
+  console.error("[migrate] failed: no database connection worked");
+  process.exit(1);
+}
 
 const dir = path.join(process.cwd(), "supabase", "migrations");
 try {
