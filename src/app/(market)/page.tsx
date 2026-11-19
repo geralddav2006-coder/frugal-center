@@ -143,7 +143,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </Link>
 
         {launching ? (
-          <div className="px-4 py-8 sm:px-6 lg:px-8">
+          <div className="px-4 pt-8 pb-5 sm:px-6 lg:px-8">
             <EmptyState
               icon={<Store />}
               title="Dracut's first deals are on the way"
@@ -158,7 +158,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </EmptyState>
           </div>
         ) : nothingNearby ? (
-          <div className="px-4 py-8 sm:px-6 lg:px-8">
+          <div className="px-4 pt-8 pb-5 sm:px-6 lg:px-8">
             <EmptyState
               icon={<MapPin />}
               title={category ? "No deals in this category nearby yet" : "No deals near this location yet"}
@@ -195,7 +195,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           </>
         )}
 
-        <section className="px-4 pt-8 sm:px-6 lg:px-8">
+        <section className="px-4 pt-5 sm:px-6 sm:pt-11 lg:px-8">
           <div className="flex flex-col items-start justify-between gap-6 overflow-hidden rounded-[28px] bg-ink p-8 text-white sm:flex-row sm:items-center sm:p-10">
             <div>
               <p className="flex items-center gap-2 text-sm font-semibold text-lime"><Store className="size-4" aria-hidden /> For local businesses</p>
