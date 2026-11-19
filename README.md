@@ -103,6 +103,13 @@ Every page renders per request (vouchers, countdowns and capacity are time- and 
 
 ---
 
+## Pitch materials for businesses
+
+With the app running locally (`npm run dev`):
+
+- `npm run pitch:example` saves phone screenshots and two shareable cards of the demo bakery to `pitch-out/example/`.
+- `npm run pitch:mockup -- businesses.json` builds a private mockup for each business you list (its page and one deal), screenshots what neighbors would see, saves a shareable card to `pitch-out/mockups/`, then ends the mockup deal. See `scripts/pitch/businesses.example.json` for the format. Mockups are made in the local demo only and are labelled "Mockup preview, not live yet".
+
 ## Production setup
 
 Deploy to Vercel (or any Node host). Local demo mode (PGlite) is for development only; production needs Supabase.

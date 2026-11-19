@@ -49,3 +49,6 @@ next-env.d.ts
 certificates
 # self-signed dev HTTPS certificates (npm run dev:https)
 /certificates
+
+# Pitch screenshots and mockups (npm run pitch:*)
+pitch-out/

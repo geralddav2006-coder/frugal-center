@@ -104,7 +104,7 @@ export default async function DealPage({ params }: Props) {
               <p className="truncate font-bold">{d.business_name}</p>
               <p className="flex items-center gap-1 text-sm text-muted">
                 <MapPin className="size-3.5" aria-hidden /> {d.address_line}
-                {formatDistance(d.distance_miles) ? ` · ${formatDistance(d.distance_miles)} away` : ""}
+                {formatDistance(d.distance_miles) ? ` · ${formatDistance(d.distance_miles)}${d.distance_miles! < 0.1 ? "" : " away"}` : ""}
               </p>
             </div>
           </Link>

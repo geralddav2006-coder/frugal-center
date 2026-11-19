@@ -12,7 +12,9 @@
     "db:seed": "tsx --tsconfig tsconfig.json scripts/seed.ts",
     "db:reset": "tsx scripts/reset-local.ts",
     "typecheck": "tsc --noEmit",
-    "dev:https": "next dev --experimental-https"
+    "dev:https": "next dev --experimental-https",
+    "pitch:mockup": "node scripts/pitch/mockup.mjs",
+    "pitch:example": "node scripts/pitch/example.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.16",

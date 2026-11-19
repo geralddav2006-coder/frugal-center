@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Your Business Name",
+    "category": "food-drink",
+    "address": "123 Example Rd",
+    "zip": "01826",
+    "description": "One or two sentences about the business, the way a neighbor would describe it.",
+    "photo": "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=1400&q=80",
+    "deal": { "type": "surplus", "title": "End-of-day bagels, half dozen", "orig": 9, "price": 4, "qty": 12 }
+  },
+  {
+    "name": "Another Business",
+    "category": "beauty-wellness",
+    "address": "456 Example St",
+    "description": "Categories: food-drink, beauty-wellness, shopping, activities, services. Photo is optional (a file path or https link).",
+    "deal": { "type": "promotion", "title": "20% off your first visit", "pct": 20, "qty": 30 }
+  }
+]
