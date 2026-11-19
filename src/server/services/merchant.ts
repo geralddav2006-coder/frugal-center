@@ -1,7 +1,7 @@
 import type { Db, Queryable } from "../db/types";
 import { slugify } from "@/lib/utils";
 import { zonedInputToDate } from "@/lib/time";
-import { assertCanPublish } from "./billing";
+import { assertCanPublish, startFoundingPeriod } from "./billing";
 import { audit, DomainError } from "./common";
 import { requireMember } from "./redemption";
 import { businessSchema, dealSchema, firstIssue, type BusinessInput, type DealInput } from "./schemas";
@@ -64,6 +64,7 @@ export async function createBusiness(db: Db, userId: string, raw: BusinessInput)
         b.state, b.zip, coords.lat, coords.lng, b.phone, b.website, b.contact_email, JSON.stringify(b.hours), userId],
     );
     await q.query(`insert into public.business_members (business_id, user_id, role) values ($1, $2, 'owner')`, [row!.id, userId]);
+    await startFoundingPeriod(q, row!.id);
     await audit(q, userId, "business.created", "business", row!.id, { name: b.name });
     return row!;
   });

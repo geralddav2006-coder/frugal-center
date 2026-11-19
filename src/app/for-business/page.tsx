@@ -6,10 +6,11 @@ import {
 import { Logo } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import { getViewer } from "@/server/auth";
+import { FOUNDING_FREE_DAYS } from "@/server/services/billing";
 
 export const metadata: Metadata = {
-  title: "Frugal Center for Business — $29/month, no commissions",
-  description: "Fill cancellations, sell surplus inventory and bring customers in during slow hours with local deals. Flat $29/month. No commissions.",
+  title: "Frugal Center for Business — start free, no commissions",
+  description: "Fill cancellations, sell surplus inventory and bring customers in during slow hours with local deals. Free for your first 3 months, then a flat $29/month. No commissions.",
 };
 
 const BENEFITS = [
@@ -24,7 +25,8 @@ const BENEFITS = [
 ];
 
 const FAQ = [
-  ["Does Frugal Center take a cut of my sales?", "No. You pay a flat $29/month. Customers pay you directly at your counter or through your existing payment system."],
+  ["Does Frugal Center take a cut of my sales?", "No. Your first 3 months are free, then it's a flat $29/month. Customers pay you directly at your counter or through your existing payment system."],
+  ["Do I need a card to sign up?", "No. Businesses that join now get their first 3 months free with no card needed. Near the end, you can add a card to keep going at $29/month, or simply stop."],
   ["How do customers redeem?", "They show a QR code or an 8-character code on their phone. Your staff scans it or types it into the Redeem screen, checks the details and confirms."],
   ["Can a voucher be used twice?", "No. Each voucher is verified on our server and can only be redeemed once, by your business."],
   ["What if my plan lapses?", "You can't publish new deals, but customers who already claimed vouchers can still redeem them on their original terms."],
@@ -35,7 +37,10 @@ export default async function ForBusinessPage() {
   const viewer = await getViewer();
   const isMember = !!viewer?.memberships.length;
   const startHref = viewer ? (isMember ? "/dashboard" : "/for-business/start") : "/signup?next=/for-business/start";
-  const ctaLabel = isMember ? "Go to dashboard" : "Start Listing Deals";
+  const free = FOUNDING_FREE_DAYS > 0;
+  const freeLabel = `${Math.round(FOUNDING_FREE_DAYS / 30)} months`;
+  const ctaLabel = isMember ? "Go to dashboard" : free ? "Start free" : "Start Listing Deals";
+  const faq = free ? FAQ : FAQ.filter(([q]) => !q.startsWith("Do I need a card"));
 
   return (
     <div className="bg-white pb-24 sm:pb-0">
@@ -55,7 +60,7 @@ export default async function ForBusinessPage() {
         <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 pt-8 pb-10 text-center sm:px-6 sm:pt-16 sm:pb-16 sm:text-left lg:grid-cols-[1.15fr_1fr] lg:px-8">
           <div>
             <p className="inline-flex items-center gap-1.5 rounded-full bg-lime px-3 py-1.5 text-xs font-extrabold">
-              <Sparkles className="size-3.5" aria-hidden /> $29/month · zero commissions
+              <Sparkles className="size-3.5" aria-hidden /> {free ? `First ${freeLabel} free · zero commissions` : "$29/month · zero commissions"}
             </p>
             <h1 className="mx-auto mt-4 max-w-[17ch] text-[31px] leading-[1.06] font-extrabold tracking-[-0.02em] min-[400px]:text-[34px] sm:mx-0 sm:mt-5 sm:max-w-none sm:text-6xl sm:leading-[1.02]">
               Turn empty time slots and unsold inventory into <span className="text-lime-ink">revenue.</span>
@@ -98,7 +103,7 @@ export default async function ForBusinessPage() {
       {/* Price strip */}
       <section className="border-y border-line bg-paper" aria-label="At a glance">
         <ul className="mx-auto grid max-w-7xl grid-cols-3 divide-x divide-line px-2 py-5 text-center sm:px-6 lg:px-8">
-          {[["$29", "per month"], ["0%", "commission"], ["2 min", "to post a deal"]].map(([v, k]) => (
+          {[free ? [freeLabel.replace(" months", " mo"), "free to start"] : ["$29", "per month"], ["0%", "commission"], ["2 min", "to post a deal"]].map(([v, k]) => (
             <li key={k} className="px-2">
               <p className="font-display text-xl font-extrabold sm:text-3xl">{v}</p>
               <p className="text-[12px] font-semibold text-muted sm:text-sm">{k}</p>
@@ -149,7 +154,7 @@ export default async function ForBusinessPage() {
       <section id="pricing" className="scroll-mt-20 bg-ink text-white">
         <div className="mx-auto grid max-w-7xl items-center gap-8 px-5 py-12 sm:px-6 sm:py-16 lg:grid-cols-2 lg:gap-10 lg:px-8">
           <div className="text-center lg:text-left">
-            <h2 className="text-[28px] font-extrabold sm:text-4xl">One simple price.</h2>
+            <h2 className="text-[28px] font-extrabold sm:text-4xl">{free ? "Start free. One simple price after." : "One simple price."}</h2>
             <p className="mx-auto mt-3 max-w-md text-[16px] text-white/70 sm:text-lg lg:mx-0">
               Fill one canceled appointment or sell one box of leftovers a week and Frugal Center has paid for itself.
             </p>
@@ -157,9 +162,16 @@ export default async function ForBusinessPage() {
           <div className="rounded-[26px] bg-white p-6 text-ink sm:rounded-[28px] sm:p-8">
             <div className="text-center sm:text-left">
               <p className="font-bold">Frugal Center for Business</p>
-              <p className="mt-2 flex items-baseline justify-center gap-1 sm:justify-start">
-                <span className="font-display text-6xl font-extrabold tracking-tight">$29</span><span className="text-muted">/month</span>
-              </p>
+              {free ? (
+                <>
+                  <p className="mt-2 font-display text-5xl font-extrabold tracking-tight">Free</p>
+                  <p className="mt-1 font-semibold text-muted">for your first {freeLabel}, then $29/month</p>
+                </>
+              ) : (
+                <p className="mt-2 flex items-baseline justify-center gap-1 sm:justify-start">
+                  <span className="font-display text-6xl font-extrabold tracking-tight">$29</span><span className="text-muted">/month</span>
+                </p>
+              )}
               <p className="mt-1 inline-block rounded-full bg-lime-soft px-3 py-1 text-sm font-bold text-lime-ink">0% commission on every sale</p>
             </div>
             <ul className="mt-6 grid gap-2.5 border-t border-line pt-5">
@@ -171,7 +183,7 @@ export default async function ForBusinessPage() {
               ))}
             </ul>
             <Button asChild size="lg" className="mt-7 w-full"><Link href={startHref}>{ctaLabel}</Link></Button>
-            <p className="mt-3 text-center text-xs text-muted">Billed monthly through Stripe. Cancel anytime from your dashboard.</p>
+            <p className="mt-3 text-center text-xs text-muted">{free ? `No card needed to start. After ${freeLabel}, $29/month billed through Stripe. Cancel anytime.` : "Billed monthly through Stripe. Cancel anytime from your dashboard."}</p>
           </div>
         </div>
       </section>
@@ -195,7 +207,7 @@ export default async function ForBusinessPage() {
         <div className="mx-auto max-w-3xl px-5 py-12 sm:px-6 sm:py-16">
           <h2 className="text-center text-[26px] font-extrabold sm:text-left sm:text-3xl">Questions</h2>
           <div className="mt-6 divide-y divide-line border-y border-line">
-            {FAQ.map(([q, a]) => (
+            {faq.map(([q, a]) => (
               <details key={q} className="group py-4 sm:py-5">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[16px] font-bold sm:text-lg">
                   {q}<span className="text-2xl text-muted transition group-open:rotate-45" aria-hidden>+</span>
@@ -217,8 +229,17 @@ export default async function ForBusinessPage() {
       <div className="pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 backdrop-blur-lg sm:hidden">
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="min-w-0 leading-tight">
-            <p className="font-display text-lg font-extrabold">$29<span className="font-sans text-sm font-semibold text-muted">/mo</span></p>
-            <p className="text-xs font-semibold text-lime-ink">0% commission</p>
+            {free ? (
+              <>
+                <p className="font-display text-lg font-extrabold">Free</p>
+                <p className="text-xs font-semibold text-lime-ink">{freeLabel}, no card</p>
+              </>
+            ) : (
+              <>
+                <p className="font-display text-lg font-extrabold">$29<span className="font-sans text-sm font-semibold text-muted">/mo</span></p>
+                <p className="text-xs font-semibold text-lime-ink">0% commission</p>
+              </>
+            )}
           </div>
           <Button asChild variant="lime" className="ml-auto h-12 flex-1"><Link href={startHref}>{ctaLabel}</Link></Button>
         </div>

@@ -181,7 +181,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <div>
               <p className="flex items-center gap-2 text-sm font-semibold text-lime"><Store className="size-4" aria-hidden /> For local businesses</p>
               <h2 className="mt-2 max-w-lg text-2xl font-extrabold sm:text-3xl">Turn empty time slots and unsold inventory into revenue.</h2>
-              <p className="mt-2 text-white/70">$29/month. Unlimited deals. Zero commissions.</p>
+              <p className="mt-2 text-white/70">Free for your first 3 months. Unlimited deals. Zero commissions.</p>
             </div>
             <Button asChild variant="lime" size="lg"><Link href="/for-business">Start listing deals</Link></Button>
           </div>

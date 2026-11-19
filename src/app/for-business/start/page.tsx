@@ -21,7 +21,7 @@ export default async function StartPage() {
           <p className="text-sm font-semibold text-muted">Step-by-step · about 3 minutes</p>
           <BusinessForm mode="onboarding" initial={{ ...EMPTY_BUSINESS, contact_email: viewer.email }} areas={areas} />
         </div>
-        <p className="mt-6 text-center text-sm text-muted">Next: activate your $29/month plan to start publishing deals. You can save drafts before subscribing.</p>
+        <p className="mt-6 text-center text-sm text-muted">Your first 3 months are free, with no card needed. You can start posting deals right after this step.</p>
       </main>
     </div>
   );

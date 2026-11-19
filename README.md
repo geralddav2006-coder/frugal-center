@@ -1,6 +1,6 @@
 # Frugal Center
 
-**Good deals, close to home.** A location-based marketplace where local businesses turn surplus inventory, canceled appointments and slow hours into revenue with time-sensitive discounts. Customers discover and claim deals for free; businesses pay a flat **$29/month** with **no commissions**. Customers pay businesses directly. Frugal Center handles discovery, claims, verification, notifications and savings tracking.
+**Good deals, close to home.** A location-based marketplace where local businesses turn surplus inventory, canceled appointments and slow hours into revenue with time-sensitive discounts. Customers discover and claim deals for free; businesses get their **first 3 months free** (no card needed), then pay a flat **$29/month** with **no commissions**. Customers pay businesses directly. Frugal Center handles discovery, claims, verification, notifications and savings tracking.
 
 Built with Next.js 16 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui-style components on Radix, Lucide, Supabase (Auth, Postgres, Storage), Stripe Billing, Resend and Web Push.
 
@@ -119,6 +119,7 @@ The server connects with the `postgres` role (table owner, bypasses RLS) and aut
 
 ### 2. Stripe
 1. Create a product "Frugal Center for Business" with a **$29/month recurring price**, and put its id in `STRIPE_PRICE_ID`.
+   New businesses start with a free founding period (90 days by default, no card). They can add a card any time from Billing; Stripe then starts charging when the free period ends. Change the length with `FC_FOUNDING_FREE_DAYS`, or set it to `0` to require the plan from day one.
 2. Add a webhook endpoint at `<APP_URL>/api/stripe/webhook` with the events `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.paused` and `customer.subscription.resumed`. Copy its signing secret to `STRIPE_WEBHOOK_SECRET`.
 3. Enable the **Customer Portal** (Settings → Billing → Customer portal).
 4. Set `STRIPE_SECRET_KEY`. Local testing: `stripe listen --forward-to localhost:3000/api/stripe/webhook`.

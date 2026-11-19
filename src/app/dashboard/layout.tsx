@@ -58,7 +58,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         ) : !active ? (
           <div className="flex flex-wrap items-center gap-2 bg-[#fff4dc] px-4 py-3 text-sm font-semibold text-warning sm:px-8">
             <AlertTriangle className="size-4 shrink-0" aria-hidden />
-            {sub?.status === "past_due" ? "Your last payment failed." : "Your subscription isn't active."} You can save drafts, but publishing is paused.
+            {sub?.status === "past_due" ? "Your last payment failed." : sub?.provider === "founding" ? "Your free founding period has ended." : "Your subscription isn't active."} You can save drafts, but publishing is paused.
             {membership.role === "owner" ? <Link href="/dashboard/billing" className="underline">Activate plan</Link> : <span>Ask the owner to activate billing.</span>}
           </div>
         ) : null}

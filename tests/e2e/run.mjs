@@ -276,11 +276,12 @@ async function main() {
     await owner.getByText(dealTitle).first().waitFor();
   });
 
-  await step("14. Subscription status controls publishing (new business onboarding)", async () => {
+  await step("14. New business onboarding: free founding period, publish with no card", async () => {
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
     const p = await ctx.newPage();
     await signup(p, "Nia Owner", `owner-${stamp}@example.com`, "/for-business/start");
     await p.waitForURL(/\/for-business\/start/);
+    await p.getByText(/first 3 months are free/).first().waitFor();
     await p.fill("#b-name", `E2E Cafe ${stamp}`);
     await p.selectOption("#b-cat", "food-drink");
     await p.getByRole("button", { name: /Continue/ }).click();
@@ -290,8 +291,11 @@ async function main() {
     await p.getByRole("button", { name: /Continue/ }).click();
     await p.getByRole("button", { name: "Create business" }).click();
     await p.waitForURL(/\/dashboard\/billing/, { timeout: 60000 });
-    await p.getByText(/isn't active|Activate plan/).first().waitFor();
-    // Publishing without a plan saves a draft only
+    await p.getByText(/Founding business: free until/).first().waitFor();
+    if (await p.getByText(/isn't active/).count()) throw new Error("Founding business shown as inactive");
+    // Straight to a live deal, no plan or card needed
+    await p.getByRole("link", { name: "Post your first deal" }).click();
+    await p.waitForURL(/\/dashboard\/deals\/new/);
     await p.goto(`${BASE}/dashboard/deals/new?type=surplus`);
     await p.fill("#d-title", "Grand opening muffins");
     await p.fill("#d-orig", "6");
@@ -299,14 +303,6 @@ async function main() {
     await p.fill("#d-qty", "5");
     await p.getByRole("button", { name: /Publish now/ }).click();
     await p.waitForURL(/\/dashboard\/deals\/[0-9a-f-]{36}/);
-    await p.getByText("Draft", { exact: true }).first().waitFor();
-    await p.getByText(/subscription is required/).first().waitFor();
-    const draftUrl = p.url();
-    await p.goto(`${BASE}/dashboard/billing`);
-    await p.getByRole("button", { name: /Activate demo plan/ }).click();
-    await p.getByText("Demo plan — no payment taken").waitFor();
-    await p.goto(draftUrl);
-    await p.getByRole("button", { name: "Publish", exact: true }).click();
     await p.getByText("Live", { exact: true }).first().waitFor();
     await ctx.close();
   });

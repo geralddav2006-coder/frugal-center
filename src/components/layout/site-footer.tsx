@@ -19,7 +19,7 @@ export function SiteFooter() {
         <div className="grid content-start gap-2 text-sm">
           <p className="font-bold">Businesses</p>
           <Link href="/for-business" className="text-muted hover:text-ink">List your business</Link>
-          <Link href="/for-business#pricing" className="text-muted hover:text-ink">Pricing — $29/month</Link>
+          <Link href="/for-business#pricing" className="text-muted hover:text-ink">Pricing — 3 months free</Link>
           <Link href="/dashboard" className="text-muted hover:text-ink">Business dashboard</Link>
         </div>
       </div>

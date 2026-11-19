@@ -72,7 +72,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             <td className="px-4 py-3"><Link href={`/business/${b.slug}`} className="font-semibold hover:underline">{b.name}</Link><p className="text-xs text-muted">{categoryName(b.category_slug)} · {b.zip} · joined {formatDateTime(b.created_at)}</p>{b.suspended_at ? <p className="text-xs font-semibold text-danger">Suspended: {b.suspended_reason}</p> : null}</td>
             <td className="px-4 py-3 text-muted">{b.owner_email}</td>
             <td className="px-4 py-3"><Badge size="sm" variant={b.review_status === "approved" ? "success" : b.review_status === "pending" ? "warning" : "danger"} className="capitalize">{b.review_status}</Badge></td>
-            <td className="px-4 py-3"><span className="capitalize">{b.subscription_status ?? "none"}</span>{b.subscription_provider === "demo" ? <span className="text-xs text-muted"> (demo)</span> : null}</td>
+            <td className="px-4 py-3"><span className="capitalize">{b.subscription_status ?? "none"}</span>{b.subscription_provider === "demo" || b.subscription_provider === "founding" ? <span className="text-xs text-muted"> ({b.subscription_provider === "founding" ? "free founding" : "demo"})</span> : null}</td>
             <td className="px-4 py-3 tabular">{b.deals}</td>
             <td className="px-4 py-3 tabular">{b.open_reports}</td>
             <td className="px-4 py-3"><BusinessControls id={b.id} review={b.review_status} suspended={!!b.suspended_at} /></td>

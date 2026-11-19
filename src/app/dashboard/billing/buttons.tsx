@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { demoSubscriptionAction, openBillingPortalAction, startCheckoutAction } from "@/app/actions/merchant";
 
-export function BillingButtons({ active, stripe, hasCustomer, isDemoPlan }: { active: boolean; stripe: boolean; hasCustomer: boolean; isDemoPlan: boolean }) {
+export function BillingButtons({ active, stripe, hasCustomer, isDemoPlan, freeUntil }: { active: boolean; stripe: boolean; hasCustomer: boolean; isDemoPlan: boolean; freeUntil: string | null }) {
   const [pending, start] = useTransition();
   const go = (fn: () => Promise<{ ok: boolean; error?: string } | void>) =>
     start(async () => {
@@ -15,11 +15,16 @@ export function BillingButtons({ active, stripe, hasCustomer, isDemoPlan }: { ac
   if (stripe) {
     return (
       <div className="flex flex-wrap gap-2">
-        {!active ? <Button variant="lime" size="lg" disabled={pending} onClick={() => go(startCheckoutAction)}>{pending ? <Loader2 className="animate-spin" /> : <Zap />} Subscribe — $29/month</Button> : null}
+        {!active || freeUntil ? (
+          <Button variant={freeUntil ? "outline" : "lime"} size="lg" disabled={pending} onClick={() => go(startCheckoutAction)}>
+            {pending ? <Loader2 className="animate-spin" /> : <Zap />} {freeUntil ? `Keep going after ${freeUntil} ($29/month)` : "Subscribe — $29/month"}
+          </Button>
+        ) : null}
         {hasCustomer ? <Button variant="outline" size="lg" disabled={pending} onClick={() => go(openBillingPortalAction)}><ExternalLink /> Manage billing</Button> : null}
       </div>
     );
   }
+  if (freeUntil) return <p className="text-sm font-semibold text-muted">Nothing to pay until {freeUntil}.</p>;
   return (
     <div className="flex flex-wrap gap-2">
       {!active ? (

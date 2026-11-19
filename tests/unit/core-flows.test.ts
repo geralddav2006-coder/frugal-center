@@ -7,7 +7,7 @@ import { lookupVoucher, confirmRedemption } from "@/server/services/redemption";
 import { getSavingsSummary } from "@/server/services/savings";
 import { dispatchNewDeal, dispatchDueDeals } from "@/server/services/notify";
 import { saveDeal, publishDeal, pauseDeal, createBusiness, duplicateDeal, endDeal } from "@/server/services/merchant";
-import { activateDemoSubscription, cancelDemoSubscription } from "@/server/services/billing";
+import { activateDemoSubscription, cancelDemoSubscription, FOUNDING_FREE_DAYS, getSubscription, isFoundingActive } from "@/server/services/billing";
 import { setFollow, setFollowNotify, updatePreferences } from "@/server/services/engagement";
 import { DomainError, normalizeManualCode, extractQrToken } from "@/server/services/common";
 import { getPromoStats, recordPromoScan } from "@/server/services/promote";
@@ -390,15 +390,31 @@ describe("following & notifications", () => {
 });
 
 describe("subscriptions gate publishing", () => {
-  it("allows drafts without a subscription but blocks publishing", async () => {
+  it("gives new businesses a free founding period, then requires a plan", async () => {
     const owner = await createUser(db, "newowner@test.dev", "New Owner");
     const biz = await createBusiness(db, owner, {
       name: "Brand New Cafe", category_slug: "food-drink", address_line: "100 Test St", city: "Dracut", state: "MA", zip: "01826",
     });
+    const sub = await getSubscription(db, biz.id);
+    expect(sub?.provider).toBe("founding");
+    expect(isFoundingActive(sub)).toBe(true);
+    const daysLeft = (new Date(sub!.current_period_end!).getTime() - Date.now()) / 86400000;
+    expect(daysLeft).toBeGreaterThan(FOUNDING_FREE_DAYS - 1);
+    expect(daysLeft).toBeLessThanOrEqual(FOUNDING_FREE_DAYS);
+    const muffins = await saveDeal(db, owner, biz.id, {
+      type: "surplus", title: "Founding muffins", images: [], original_price: 6, deal_price: 2, quantity_total: 10, starts_at: local(-1), ends_at: local(5),
+    });
+    // No card, no plan: publishing works during the free period.
+    expect((await publishDeal(db, owner, muffins.id)).live).toBe(true);
+    await endDeal(db, owner, muffins.id);
+
+    // The free period ends: drafts still save, publishing is blocked with a clear message.
+    await db.query(`update public.business_subscriptions set current_period_end = now() - interval '1 minute' where business_id = $1`, [biz.id]);
     const { id } = await saveDeal(db, owner, biz.id, {
       type: "surplus", title: "Grand opening muffins", images: [], original_price: 6, deal_price: 2, quantity_total: 10, starts_at: local(-1), ends_at: local(5),
     });
-    await expectError(publishDeal(db, owner, id), "subscription_inactive");
+    const err = await expectError(publishDeal(db, owner, id), "subscription_inactive");
+    expect(err.message).toMatch(/free founding period has ended/);
     await activateDemoSubscription(db, biz.id, owner);
     expect((await publishDeal(db, owner, id)).live).toBe(true);
     await cancelDemoSubscription(db, biz.id, owner);

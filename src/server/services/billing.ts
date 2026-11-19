@@ -5,9 +5,18 @@ import { audit, DomainError } from "./common";
 
 export const PLAN = { name: "Frugal Center for Business", priceCents: 2900, interval: "month" } as const;
 
+/**
+ * Founding offer: new businesses publish free for this many days, no card needed,
+ * then need the $29/month plan. Set FC_FOUNDING_FREE_DAYS=0 to turn it off.
+ */
+export const FOUNDING_FREE_DAYS = (() => {
+  const n = Number(process.env.FC_FOUNDING_FREE_DAYS ?? 90);
+  return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 90;
+})();
+
 export interface Subscription {
   business_id: string;
-  provider: "stripe" | "demo";
+  provider: "stripe" | "demo" | "founding";
   status: string;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
@@ -22,8 +31,14 @@ export async function getSubscription(q: Queryable, businessId: string): Promise
   return s ?? null;
 }
 
+/** True while a founding business is inside its free period. */
+export function isFoundingActive(s: Subscription | null) {
+  return !!s && s.provider === "founding" && s.status === "trialing" && !!s.current_period_end && new Date(s.current_period_end) > new Date();
+}
+
 export function isSubscriptionActive(s: Subscription | null) {
   if (!s || !ACTIVE_STATUSES.includes(s.status)) return false;
+  if (s.provider === "founding") return isFoundingActive(s);
   // Demo subscriptions only count while Stripe is not configured.
   if (s.provider === "demo" && integrations.stripe) return false;
   return true;
@@ -33,12 +48,26 @@ export async function assertCanPublish(q: Queryable, businessId: string) {
   const [b] = await q.query(`select suspended_at from public.businesses where id = $1`, [businessId]);
   if (!b) throw new DomainError("not_found", "Business not found.");
   if (b.suspended_at) throw new DomainError("suspended", "This business is suspended. Contact support.");
-  if (!isSubscriptionActive(await getSubscription(q, businessId))) {
+  const sub = await getSubscription(q, businessId);
+  if (!isSubscriptionActive(sub)) {
     throw new DomainError(
       "subscription_inactive",
-      "An active $29/month subscription is required to publish deals. You can still save drafts.",
+      sub?.provider === "founding"
+        ? "Your free founding period has ended. Subscribe for $29/month to keep publishing. You can still save drafts."
+        : "An active $29/month subscription is required to publish deals. You can still save drafts.",
     );
   }
+}
+
+/** Starts the free founding period for a new business. No-op if it already has a plan. */
+export async function startFoundingPeriod(q: Queryable, businessId: string) {
+  if (FOUNDING_FREE_DAYS <= 0) return;
+  await q.query(
+    `insert into public.business_subscriptions (business_id, provider, status, current_period_end)
+     values ($1, 'founding', 'trialing', now() + make_interval(days => $2::int))
+     on conflict (business_id) do nothing`,
+    [businessId, FOUNDING_FREE_DAYS],
+  );
 }
 
 let stripeClient: Stripe | null = null;
@@ -54,7 +83,11 @@ export async function stripe() {
 export async function createCheckoutSession(db: Db, args: { businessId: string; userId: string; email: string }) {
   const s = await stripe();
   const existing = await getSubscription(db, args.businessId);
-  if (isSubscriptionActive(existing)) throw new DomainError("already_active", "Your subscription is already active.");
+  const founding = isFoundingActive(existing);
+  if (isSubscriptionActive(existing) && !founding) throw new DomainError("already_active", "Your subscription is already active.");
+  // During the free founding period, billing starts only when it ends (Stripe needs a trial end 48h+ out).
+  const freeUntil = founding ? new Date(existing!.current_period_end!).getTime() : 0;
+  const trialEnd = freeUntil > Date.now() + 49 * 3600_000 ? Math.floor(freeUntil / 1000) : undefined;
   const [biz] = await db.query(`select name from public.businesses where id = $1`, [args.businessId]);
   const session = await s.checkout.sessions.create({
     mode: "subscription",
@@ -63,7 +96,7 @@ export async function createCheckoutSession(db: Db, args: { businessId: string; 
     customer_email: existing?.stripe_customer_id ? undefined : args.email,
     client_reference_id: args.businessId,
     metadata: { business_id: args.businessId, user_id: args.userId },
-    subscription_data: { metadata: { business_id: args.businessId }, description: biz?.name },
+    subscription_data: { metadata: { business_id: args.businessId }, description: biz?.name, ...(trialEnd ? { trial_end: trialEnd } : {}) },
     allow_promotion_codes: true,
     success_url: `${env.appUrl}/dashboard/billing?checkout=success`,
     cancel_url: `${env.appUrl}/dashboard/billing?checkout=canceled`,
