@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { demoSubscriptionAction, openBillingPortalAction, startCheckoutAction } from "@/app/actions/merchant";
 
-export function BillingButtons({ active, stripe, hasCustomer, isDemoPlan, freeUntil }: { active: boolean; stripe: boolean; hasCustomer: boolean; isDemoPlan: boolean; freeUntil: string | null }) {
+export function BillingButtons({ active, stripe, demo, hasCustomer, isDemoPlan, freeUntil }: { active: boolean; stripe: boolean; demo: boolean; hasCustomer: boolean; isDemoPlan: boolean; freeUntil: string | null }) {
   const [pending, start] = useTransition();
   const go = (fn: () => Promise<{ ok: boolean; error?: string } | void>) =>
     start(async () => {
@@ -25,6 +25,7 @@ export function BillingButtons({ active, stripe, hasCustomer, isDemoPlan, freeUn
     );
   }
   if (freeUntil) return <p className="text-sm font-semibold text-muted">Nothing to pay until {freeUntil}.</p>;
+  if (!demo) return <p className="text-sm font-semibold text-muted">Subscriptions aren&apos;t open yet. Email us and we&apos;ll keep you publishing.</p>;
   return (
     <div className="flex flex-wrap gap-2">
       {!active ? (

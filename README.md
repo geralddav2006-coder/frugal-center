@@ -112,17 +112,21 @@ With the app running locally (`npm run dev`):
 
 ## Production setup
 
-Deploy to Vercel (or any Node host). Local demo mode (PGlite) is for development only; production needs Supabase.
+Deploy to Vercel. Local demo mode (PGlite) is for development only; the live site uses Supabase.
 
-### 1. Supabase
-1. Create a project. Under **Connect → Transaction pooler**, copy the connection string into `DATABASE_URL`.
-2. Apply the migrations: `npx supabase link --project-ref <ref>`, then `npx supabase db push` (or paste the files in `supabase/migrations/` into the SQL editor, in order). This creates the schema, RLS policies and the public `media` storage bucket.
-3. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY`.
-4. **Auth → URL configuration**: set the Site URL to `NEXT_PUBLIC_APP_URL` and add `<APP_URL>/auth/callback` to the redirect URLs.
-5. Optional Google sign-in: enable the Google provider in Supabase, then set `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`.
-6. Optional sample data for staging: `npm run db:seed` (refuses to run in production unless `FC_ALLOW_PROD_SEED=1`).
+### 1. Vercel + Supabase (the minimum to go live)
+1. In Vercel, **Add New → Project** and import this GitHub repository. Keep the defaults.
+2. In the project, open **Storage → Create Database → Supabase** and connect it to the project (all environments). This fills in the Supabase and Postgres settings automatically. The app accepts the integration's names (`POSTGRES_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_SECRET_KEY`, the anon or publishable key), so nothing needs copying. You can also set `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` yourself.
+3. Add `ADMIN_EMAILS` (your email) under **Settings → Environment Variables**, then **Redeploy**.
+4. Every deploy runs `npm run vercel-build`, which applies new files in `supabase/migrations/` (tracked in `fc_meta.migrations`) before building.
+5. In Supabase, **Authentication → URL Configuration**: set the Site URL to your site's address and add `<site>/auth/callback` to the redirect URLs. Until you set up your own email sender, consider turning off **Confirm email** (Authentication → Sign In / Providers → Email): Supabase's built-in sender only allows a few emails per hour.
+6. Open `<site>/api/health` to check the setup. It reports which services are configured and how many migrations ran, never any values.
+
+Optional: `NEXT_PUBLIC_APP_URL` (defaults to the Vercel production address), `AUTH_SECRET` (defaults to a value derived from the Supabase secret key), Google sign-in (enable the provider in Supabase, then `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`). Sample data for a staging copy: `npm run db:seed` (refuses to run in production unless `FC_ALLOW_PROD_SEED=1`).
 
 The server connects with the `postgres` role (table owner, bypasses RLS) and authorizes every request itself. RLS protects the public API that uses the anon key.
+
+New businesses start with the free founding period, so Stripe can wait. Without Stripe, the live site never offers the demo plan; set up Stripe before the first free periods end.
 
 ### 2. Stripe
 1. Create a product "Frugal Center for Business" with a **$29/month recurring price**, and put its id in `STRIPE_PRICE_ID`.
@@ -140,7 +144,7 @@ Verify your sending domain, then set `RESEND_API_KEY` and `EMAIL_FROM`.
 `npx web-push generate-vapid-keys`, then set `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT`. Users enable push per device in Profile → Notifications. On iOS this requires adding the app to the Home Screen.
 
 ### 5. Cron
-`vercel.json` schedules `/api/cron/dispatch` every 10 minutes to announce scheduled deals when they start and to prune old rate-limit rows. Set `CRON_SECRET` (Vercel sends it as a bearer token). Note: Vercel Hobby plans only allow daily crons. Use Pro, or call the endpoint from any scheduler. The dashboard and explore pages also run a throttled opportunistic sweep.
+`vercel.json` runs `/api/cron/dispatch` once a day (the most Vercel's free Hobby plan allows) to announce scheduled deals and prune old rate-limit rows. Set `CRON_SECRET` (Vercel sends it as a bearer token). The dashboard and explore pages also run a throttled sweep, so scheduled deals are announced promptly even between cron runs. On Vercel Pro you can schedule it more often.
 
 ### 6. Everything else
 `AUTH_SECRET` (32+ chars, required in production), `NEXT_PUBLIC_APP_URL`, and `ADMIN_EMAILS` (comma-separated, promoted to admin on sign-in). See `.env.example` for the full list.

@@ -1,14 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { env, integrations } from "@/server/env";
 
 /**
  * Keeps Supabase auth cookies fresh (Supabase mode only). Authorization is
  * enforced in server code, not here.
  */
 export async function proxy(request: NextRequest) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key || !process.env.DATABASE_URL) return NextResponse.next();
+  if (!integrations.supabase) return NextResponse.next();
+  const url = env.supabaseUrl!;
+  const key = env.supabaseAnonKey!;
 
   let response = NextResponse.next({ request });
   const supabase = createServerClient(url, key, {
@@ -26,5 +27,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|api/uploads|api/stripe|api/cron|icon.svg|logo-mark.svg|sw.js|manifest.webmanifest|.*\\.(?:png|jpg|jpeg|svg|webp|ico)$).*)"],
+  matcher: ["/((?!_next/static|_next/image|api/uploads|api/stripe|api/cron|api/health|icon.svg|logo-mark.svg|sw.js|manifest.webmanifest|.*\\.(?:png|jpg|jpeg|svg|webp|ico)$).*)"],
 };

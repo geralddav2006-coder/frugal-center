@@ -3,16 +3,23 @@
  * credentials are missing, Frugal Center runs in a clearly-labelled local demo
  * mode for that service instead of pretending it worked.
  */
+import { createHash } from "node:crypto";
+
 const e = process.env;
 
+// Vercel's Supabase integration names some settings differently; accept both.
+const vercelUrl = e.VERCEL_PROJECT_PRODUCTION_URL ? `https://${e.VERCEL_PROJECT_PRODUCTION_URL}` : undefined;
+const serviceKey = e.SUPABASE_SERVICE_ROLE_KEY || e.SUPABASE_SECRET_KEY;
+
 export const env = {
-  appUrl: (e.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, ""),
-  supabaseUrl: e.NEXT_PUBLIC_SUPABASE_URL,
-  supabaseAnonKey: e.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  supabaseServiceRoleKey: e.SUPABASE_SERVICE_ROLE_KEY,
-  databaseUrl: e.DATABASE_URL,
+  appUrl: (e.NEXT_PUBLIC_APP_URL || vercelUrl || "http://localhost:3000").replace(/\/$/, ""),
+  supabaseUrl: e.NEXT_PUBLIC_SUPABASE_URL || e.SUPABASE_URL,
+  supabaseAnonKey: e.NEXT_PUBLIC_SUPABASE_ANON_KEY || e.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || e.SUPABASE_ANON_KEY || e.SUPABASE_PUBLISHABLE_KEY,
+  supabaseServiceRoleKey: serviceKey,
+  databaseUrl: e.DATABASE_URL || e.POSTGRES_URL,
   googleAuthEnabled: e.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true",
-  authSecret: e.AUTH_SECRET,
+  // Signs sessions and unsubscribe links. Without AUTH_SECRET, derive one from the Supabase secret key.
+  authSecret: e.AUTH_SECRET || (serviceKey ? createHash("sha256").update(`frugal-center-session:${serviceKey}`).digest("base64") : undefined),
   stripeSecretKey: e.STRIPE_SECRET_KEY,
   stripeWebhookSecret: e.STRIPE_WEBHOOK_SECRET,
   stripePriceId: e.STRIPE_PRICE_ID,

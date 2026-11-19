@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 import type { Db, Queryable } from "../db/types";
-import { env, integrations } from "../env";
+import { env, integrations, isDemo } from "../env";
 import { audit, DomainError } from "./common";
 
 export const PLAN = { name: "Frugal Center for Business", priceCents: 2900, interval: "month" } as const;
@@ -39,8 +39,8 @@ export function isFoundingActive(s: Subscription | null) {
 export function isSubscriptionActive(s: Subscription | null) {
   if (!s || !ACTIVE_STATUSES.includes(s.status)) return false;
   if (s.provider === "founding") return isFoundingActive(s);
-  // Demo subscriptions only count while Stripe is not configured.
-  if (s.provider === "demo" && integrations.stripe) return false;
+  // Demo subscriptions only count in the local demo, never on the live site.
+  if (s.provider === "demo" && (!isDemo || integrations.stripe)) return false;
   return true;
 }
 
@@ -187,6 +187,7 @@ export async function handleStripeEvent(db: Db, event: Stripe.Event) {
 /** Local demo only: marks the plan active without any payment. Clearly labelled in the UI. */
 export async function activateDemoSubscription(q: Queryable, businessId: string, actorId: string) {
   if (integrations.stripe) throw new DomainError("stripe_configured", "Use Stripe Checkout to subscribe.");
+  if (!isDemo) throw new DomainError("billing_unavailable", "Card payments aren't set up yet. Contact Frugal Center to keep publishing.");
   await q.query(
     `insert into public.business_subscriptions (business_id, provider, status, current_period_end)
      values ($1, 'demo', 'active', now() + interval '30 days')

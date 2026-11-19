@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { requireBusiness } from "@/server/auth";
 import { getDb } from "@/server/db";
-import { integrations } from "@/server/env";
+import { integrations, isDemo } from "@/server/env";
 import { getSubscription, isFoundingActive, isSubscriptionActive, PLAN } from "@/server/services/billing";
 import { formatDate } from "@/lib/time";
 import { Badge } from "@/components/ui/badge";
@@ -63,12 +63,14 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
           ))}
         </ul>
         <div className="border-t border-line bg-paper p-6">
-          <BillingButtons active={active} stripe={integrations.stripe} hasCustomer={!!sub?.stripe_customer_id} isDemoPlan={sub?.provider === "demo"} freeUntil={founding ? freeUntil : null} />
+          <BillingButtons active={active} stripe={integrations.stripe} demo={isDemo} hasCustomer={!!sub?.stripe_customer_id} isDemoPlan={sub?.provider === "demo"} freeUntil={founding ? freeUntil : null} />
           <p className="mt-4 flex items-start gap-2 text-xs text-muted">
             <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden />
             {integrations.stripe
               ? "Payments are processed securely by Stripe. Frugal Center never sees or stores your card details."
-              : "Stripe isn't configured on this server, so this is a local demo: activating the plan takes no payment. Add Stripe keys to enable real billing."}
+              : isDemo
+                ? "Stripe isn't configured on this server, so this is a local demo: activating the plan takes no payment. Add Stripe keys to enable real billing."
+                : "Card payments open before the first free periods end. You won't be charged anything until you add a card yourself."}
           </p>
         </div>
       </section>

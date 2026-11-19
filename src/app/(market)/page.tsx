@@ -39,6 +39,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     return `/explore?${p.toString()}`;
   };
   const nothingNearby = s.nearYou.length === 0;
+  // Launch period: no live deals anywhere yet, so say what's coming instead of "try a wider radius".
+  const launching =
+    nothingNearby && !category &&
+    !(await db.query(`select 1 from public.deals where status = 'published' and ends_at > now() limit 1`)).length;
 
   return (
     <>
@@ -138,7 +142,22 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <Map className="size-4 text-lime" aria-hidden /> Map
         </Link>
 
-        {nothingNearby ? (
+        {launching ? (
+          <div className="px-4 py-8 sm:px-6 lg:px-8">
+            <EmptyState
+              icon={<Store />}
+              title="Dracut's first deals are on the way"
+              action={
+                <div className="flex flex-wrap justify-center gap-2">
+                  {signedIn ? null : <Button asChild><Link href="/signup">Create a free account</Link></Button>}
+                  <Button asChild variant="outline"><Link href="/for-business">Own a business? Join free</Link></Button>
+                </div>
+              }
+            >
+              Local businesses are signing up right now. Check back soon, and follow your favorite spots to hear the moment they post a deal.
+            </EmptyState>
+          </div>
+        ) : nothingNearby ? (
           <div className="px-4 py-8 sm:px-6 lg:px-8">
             <EmptyState
               icon={<MapPin />}
