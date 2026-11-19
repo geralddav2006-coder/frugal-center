@@ -9,7 +9,7 @@ export default function MarketLayout({ children }: { children: React.ReactNode }
     <>
       {isDemo ? <DemoBanner /> : null}
       <SiteHeader />
-      <main className="min-h-[60dvh] pb-24 md:pb-0">{children}</main>
+      <main className="min-h-[60dvh]">{children}</main>
       <SiteFooter />
       <MobileTabBar />
     </>
