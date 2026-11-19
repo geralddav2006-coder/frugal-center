@@ -16,7 +16,8 @@ export const env = {
   supabaseUrl: e.NEXT_PUBLIC_SUPABASE_URL || e.SUPABASE_URL,
   supabaseAnonKey: e.NEXT_PUBLIC_SUPABASE_ANON_KEY || e.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || e.SUPABASE_ANON_KEY || e.SUPABASE_PUBLISHABLE_KEY,
   supabaseServiceRoleKey: serviceKey,
-  databaseUrl: e.DATABASE_URL || e.POSTGRES_URL,
+  // Prefer a session-mode connection: transaction-mode pooling can stall parallel queries.
+  databaseUrl: e.DATABASE_URL || e.POSTGRES_URL_NON_POOLING || e.POSTGRES_URL,
   googleAuthEnabled: e.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true",
   // Signs sessions and unsubscribe links. Without AUTH_SECRET, derive one from the Supabase secret key.
   authSecret: e.AUTH_SECRET || (serviceKey ? createHash("sha256").update(`frugal-center-session:${serviceKey}`).digest("base64") : undefined),

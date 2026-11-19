@@ -45,6 +45,10 @@ export async function GET(req: NextRequest) {
         );
         return r?.n;
       }));
+      checks.push(await withTimeout("db 8 parallel queries", 8000, async () => {
+        const rows = await Promise.all(Array.from({ length: 8 }, (_, i) => db.query<{ n: number }>(`select $1::int as n, pg_sleep(0.05)`, [i])));
+        return rows.map((r) => r[0]?.n).join(",");
+      }));
       checks.push(await withTimeout("db write", 8000, async () => {
         await db.query(`insert into public.rate_limit_events (key) values ($1)`, ["health-check"]);
         await db.query(`delete from public.rate_limit_events where key = $1`, ["health-check"]);
@@ -67,6 +71,7 @@ export async function GET(req: NextRequest) {
       launchAreas,
       supabase: integrations.supabase,
       supabaseHost: env.supabaseUrl ? new URL(env.supabaseUrl).host : null,
+      dbPort: env.databaseUrl ? (new URL(env.databaseUrl).port || "5432") : null,
       stripe: integrations.stripe,
       email: integrations.resend,
       push: integrations.push,
