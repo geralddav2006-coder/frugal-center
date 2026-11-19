@@ -97,7 +97,12 @@ export async function signUp(input: { email: string; password: string; fullName:
       password: input.password,
       options: { data: { full_name: fullName }, emailRedirectTo: `${env.appUrl}/auth/callback` },
     });
-    if (error) throw new DomainError("auth", error.message);
+    if (error) {
+      if (/already registered|already exists/i.test(error.message)) {
+        throw new DomainError("exists", "An account with that email already exists. Try signing in.");
+      }
+      throw new DomainError("auth", error.message);
+    }
     // Supabase answers a sign-up for an existing email with a placeholder user and no identities.
     if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
       throw new DomainError("exists", "An account with that email already exists. Try signing in.");
