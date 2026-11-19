@@ -1,7 +1,7 @@
 // Pitch mockups: builds each business's profile and one deal in the LOCAL demo app,
 // screenshots what neighbors would see, then ends the deal again.
 // Run the app locally first (npm run dev), then: npm run pitch:mockup -- businesses.json [outDir]
-// Each entry: { name, category, address, zip?, description, photo? (file path or https URL),
+// Each entry: { name, category, address, zip?, description, photo? and logo? (file path or https URL),
 //   deal: { type: "surplus" | "promotion", title, description?, orig?, price?, qty?, pct?, off? } }
 import { createRequire } from "node:module"; import fs from "node:fs"; import path from "node:path"; import { execFileSync } from "node:child_process";
 const require = createRequire(import.meta.url); const { chromium } = require("playwright");
@@ -64,6 +64,11 @@ for (const biz of list) {
   await o.getByRole("button", { name: /Continue/ }).click();
   await o.getByLabel("Upload Cover photo").setInputFiles(photo);
   await o.getByRole("button", { name: /Remove Cover photo/ }).waitFor({ timeout: 30000 });
+  if (biz.logo) {
+    // The business's own logo replaces the initials on its page and deal.
+    await o.getByLabel("Upload Logo").setInputFiles(await localPhoto(biz.logo, { ...biz, name: `${biz.name}-logo` }));
+    await o.getByRole("button", { name: /Remove Logo/ }).waitFor({ timeout: 30000 });
+  }
   await o.getByRole("button", { name: "Create business" }).click();
   await o.waitForURL(/\/dashboard\/billing/, { timeout: 60000 });
   // 2. Post the deal.

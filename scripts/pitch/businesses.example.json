@@ -12,7 +12,7 @@
     "name": "Another Business",
     "category": "beauty-wellness",
     "address": "456 Example St",
-    "description": "Categories: food-drink, beauty-wellness, shopping, activities, services. Photo is optional (a file path or https link).",
+    "description": "Categories: food-drink, beauty-wellness, shopping, activities, services. Photo and logo are optional (a file path or https link). Logos must be JPG, PNG or WebP.",
     "deal": { "type": "promotion", "title": "20% off your first visit", "pct": 20, "qty": 30 }
   }
 ]
