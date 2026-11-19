@@ -1,11 +1,24 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { getDb } from "@/server/db";
 import { env, integrations, isDemo } from "@/server/env";
 
 export const dynamic = "force-dynamic";
 
-/** Setup check for the live site. Reports which services are configured — never any values. */
-export async function GET() {
+const withTimeout = async <T,>(label: string, ms: number, fn: () => Promise<T>) => {
+  const t0 = Date.now();
+  try {
+    const value = await Promise.race([fn(), new Promise<never>((_, rej) => setTimeout(() => rej(new Error(`timed out after ${ms}ms`)), ms))]);
+    return { step: label, ok: true, ms: Date.now() - t0, value };
+  } catch (err) {
+    return { step: label, ok: false, ms: Date.now() - t0, error: (err as Error).message.slice(0, 200) };
+  }
+};
+
+/**
+ * Setup check for the live site. Reports which services are configured — never any values.
+ * `?check=1` also times a database write and a call to Supabase Auth.
+ */
+export async function GET(req: NextRequest) {
   let database: "ok" | "error" = "error";
   let migrations: number | null = null;
   let launchAreas: number | null = null;
@@ -21,6 +34,30 @@ export async function GET() {
   } catch {
     database = "error";
   }
+  const checks = [];
+  if (req.nextUrl.searchParams.get("check") === "1") {
+    const db = await getDb().catch(() => null);
+    if (db) {
+      checks.push(await withTimeout("db query with parameters", 8000, async () => {
+        const [r] = await db.query<{ n: number }>(
+          `select count(*)::int as n from public.rate_limit_events where key = $1 and created_at > now() - make_interval(secs => $2)`,
+          ["health-check", 60],
+        );
+        return r?.n;
+      }));
+      checks.push(await withTimeout("db write", 8000, async () => {
+        await db.query(`insert into public.rate_limit_events (key) values ($1)`, ["health-check"]);
+        await db.query(`delete from public.rate_limit_events where key = $1`, ["health-check"]);
+        return "ok";
+      }));
+    }
+    if (integrations.supabase) {
+      checks.push(await withTimeout("supabase auth reachable", 8000, async () => {
+        const res = await fetch(`${env.supabaseUrl}/auth/v1/health`, { headers: { apikey: env.supabaseAnonKey! }, cache: "no-store" });
+        return res.status;
+      }));
+    }
+  }
   return NextResponse.json(
     {
       mode: isDemo ? "local-demo" : "live",
@@ -29,11 +66,13 @@ export async function GET() {
       migrations,
       launchAreas,
       supabase: integrations.supabase,
+      supabaseHost: env.supabaseUrl ? new URL(env.supabaseUrl).host : null,
       stripe: integrations.stripe,
       email: integrations.resend,
       push: integrations.push,
       cronSecret: Boolean(env.cronSecret),
       admins: env.adminEmails.length,
+      ...(checks.length ? { checks } : {}),
     },
     { headers: { "cache-control": "no-store" } },
   );

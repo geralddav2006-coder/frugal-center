@@ -1,5 +1,5 @@
 "use client";
-import { useActionState, useRef } from "react";
+import { startTransition, useActionState, useRef } from "react";
 import Link from "next/link";
 import { Loader2, MailCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -54,7 +54,15 @@ export function AuthForm({
         </>
       ) : <div className="mt-7" />}
 
-      <form action={formAction} className="grid gap-4" noValidate={false}>
+      <form
+        className="grid gap-4"
+        // Submit without React's automatic form reset, so a failed attempt keeps what was typed.
+        onSubmit={(e) => {
+          e.preventDefault();
+          const data = new FormData(e.currentTarget);
+          startTransition(() => formAction(data));
+        }}
+      >
         <input type="hidden" name="next" value={next} />
         {mode === "signup" ? (
           <Field label="Your name" htmlFor="fullName">
