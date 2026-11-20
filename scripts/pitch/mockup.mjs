@@ -1,17 +1,20 @@
 // Pitch mockups: builds each business's profile and one deal in the LOCAL demo app,
 // screenshots what neighbors would see, then ends the deal again.
 // Run the app locally first (npm run dev), then: npm run pitch:mockup -- businesses.json [outDir]
+// Add --cards-only to rebuild just the cards from screenshots already in outDir (after a copy change).
 // Each entry: { name, category, address, zip?, description, photo? and logo? (file path or https URL),
+//   pitch? (the card's benefit line; a default is picked from the category and deal),
 //   deal: { type: "surplus" | "promotion", title, description?, orig?, price?, qty?, pct?, off? } }
 import { createRequire } from "node:module"; import fs from "node:fs"; import path from "node:path"; import { execFileSync } from "node:child_process";
 const require = createRequire(import.meta.url); const { chromium } = require("playwright");
 const B = process.env.FC_URL || "http://localhost:3000";
-const [, , input, outArg] = process.argv;
+const CARDS_ONLY = process.argv.includes("--cards-only");
+const [input, outArg] = process.argv.slice(2).filter((a) => a !== "--cards-only");
 if (!input) { console.error("Usage: npm run pitch:mockup -- businesses.json [outDir]"); process.exit(1); }
 const list = JSON.parse(fs.readFileSync(input, "utf8"));
 const OUT = path.resolve(outArg || "pitch-out/mockups"); fs.mkdirSync(OUT, { recursive: true });
 const TMP = path.resolve("pitch-out/.tmp"); fs.mkdirSync(TMP, { recursive: true });
-import { card } from "./card.mjs";
+import { card, pitchCopy } from "./card.mjs";
 
 const STOCK = {
   "food-drink": "1504674900247-0877df9cc836",
@@ -47,8 +50,20 @@ const settle = async (p) => {
 };
 
 const b = await chromium.launch();
+const img = (f) => `data:image/png;base64,${fs.readFileSync(f).toString("base64")}`;
+async function makeCard(biz, profile, deal, out) {
+  const ctx = await b.newContext({ viewport: { width: 1080, height: 1350 }, deviceScaleFactor: 1 });
+  const p = await ctx.newPage(); await p.setContent(card({ title: biz.name, ...pitchCopy(biz), left: img(profile), right: img(deal) }));
+  await p.waitForTimeout(800); await p.screenshot({ path: out }); await ctx.close();
+}
 for (const biz of list) {
   const id = slug(biz.name); console.log("→", biz.name);
+  if (CARDS_ONLY) {
+    const [profile, deal] = ["profile", "deal"].map((k) => path.join(OUT, `${id}-${k}.png`));
+    if (!fs.existsSync(profile) || !fs.existsSync(deal)) { console.log("  no screenshots yet; run without --cards-only first"); continue; }
+    await makeCard(biz, profile, deal, path.join(OUT, `${id}-card.png`)); console.log("  saved", path.join(OUT, `${id}-card.png`));
+    continue;
+  }
   const photo = await localPhoto(biz.photo, biz);
   // 1. Owner signs up and creates the business (the same steps a real owner takes).
   const octx = await b.newContext({ viewport: { width: 1280, height: 900 }, timezoneId: "America/New_York" }); await hide(octx);
@@ -109,11 +124,8 @@ for (const biz of list) {
   const href = bizSlug || (await c.locator('a[href^="/business/"]').first().getAttribute("href"));
   await c.goto(`${B}${href}`); await settle(c); await c.screenshot({ path: profile });
   // 4. One shareable card.
-  const img = (f) => `data:image/png;base64,${fs.readFileSync(f).toString("base64")}`;
   await cctx.close();
-  const cctx2 = await b.newContext({ viewport: { width: 1080, height: 1350 }, deviceScaleFactor: 1 });
-  const p2 = await cctx2.newPage(); await p2.setContent(card({ title: biz.name, sub: `Be one of ${biz.city || "Dracut"}'s first businesses on Frugal Center`, tag: "Founding business invite", left: img(profile), right: img(deal), note: "Mockup preview<br>not live yet" }));
-  await p2.waitForTimeout(800); await p2.screenshot({ path: path.join(OUT, `${id}-card.png`) }); await cctx2.close();
+  await makeCard(biz, profile, deal, path.join(OUT, `${id}-card.png`));
   // 5. Take the mockup back down so it doesn't stay live in the demo.
   await o.getByRole("button", { name: "End", exact: true }).click();
   const dlg = o.getByRole("dialog"); if (await dlg.count()) await dlg.getByRole("button", { name: /End/ }).last().click();
