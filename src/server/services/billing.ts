@@ -68,8 +68,6 @@ export async function startFoundingPeriod(q: Queryable, businessId: string) {
      on conflict (business_id) do nothing`,
     [businessId, FOUNDING_FREE_DAYS],
   );
-  // Joined during the founding period: keeps the "Founding business" badge for good.
-  await q.query(`update public.businesses set founding_member = true where id = $1`, [businessId]);
 }
 
 let stripeClient: Stripe | null = null;

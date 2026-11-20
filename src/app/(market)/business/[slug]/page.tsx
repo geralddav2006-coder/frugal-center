@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { Clock, Globe, Mail, MapPin, Navigation, Phone, Sparkles, Users } from "lucide-react";
+import { Clock, Globe, Mail, MapPin, Navigation, Phone, Users } from "lucide-react";
 import { getViewer } from "@/server/auth";
 import { getDb } from "@/server/db";
 import { getViewerLocation } from "@/server/location";
@@ -68,11 +68,6 @@ export default async function BusinessPage({ params, searchParams }: Props) {
           <BusinessAvatar name={b.name} src={b.logo_url} className="relative z-10 -mt-10 size-20 shrink-0 rounded-2xl text-2xl ring-4 ring-white sm:-mt-12 sm:size-24" />
           <div className="min-w-0 flex-1 sm:pt-4 sm:pb-1">
             <h1 className="text-3xl font-extrabold sm:text-4xl">{b.name}</h1>
-            {b.founding_member ? (
-              <p className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-xs font-bold text-white">
-                <Sparkles className="size-3.5 text-lime" aria-hidden /> Founding business · one of {b.city}&apos;s first
-              </p>
-            ) : null}
             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
               <Badge variant="soft" size="sm">{categoryName(b.category_slug)}</Badge>
               <span className="flex items-center gap-1"><MapPin className="size-3.5" aria-hidden /> {b.city}{formatDistance(b.distance_miles) ? ` · ${formatDistance(b.distance_miles)}` : ""}</span>

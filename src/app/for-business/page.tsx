@@ -27,7 +27,6 @@ const BENEFITS = [
 const FAQ = [
   ["Does Frugal Center take a cut of my sales?", "No. Your first 3 months are free, then it's a flat $29/month. Customers pay you directly at your counter or through your existing payment system."],
   ["Do I need a card to sign up?", "No. Businesses that join now get their first 3 months free with no card needed. Near the end, you can add a card to keep going at $29/month, or simply stop."],
-  ["What's a founding business?", "Businesses that join during the founding period are the first in their town on Frugal Center. Their page shows a \"Founding business\" badge, and it stays for good, even after the free months end."],
   ["How do customers redeem?", "They show a QR code or an 8-character code on their phone. Your staff scans it or types it into the Redeem screen, checks the details and confirms."],
   ["Can a voucher be used twice?", "No. Each voucher is verified on our server and can only be redeemed once, by your business."],
   ["What if my plan lapses?", "You can't publish new deals, but customers who already claimed vouchers can still redeem them on their original terms."],
@@ -41,7 +40,7 @@ export default async function ForBusinessPage() {
   const free = FOUNDING_FREE_DAYS > 0;
   const freeLabel = `${Math.round(FOUNDING_FREE_DAYS / 30)} months`;
   const ctaLabel = isMember ? "Go to dashboard" : free ? "Start free" : "Start Listing Deals";
-  const faq = free ? FAQ : FAQ.filter(([q]) => !q.startsWith("Do I need a card") && !q.startsWith("What's a founding"));
+  const faq = free ? FAQ : FAQ.filter(([q]) => !q.startsWith("Do I need a card"));
 
   return (
     <div className="bg-white pb-24 sm:pb-0">
