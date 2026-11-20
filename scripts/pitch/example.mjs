@@ -45,7 +45,7 @@ await oc.close();
 const img = (f) => `data:image/png;base64,${fs.readFileSync(f).toString("base64")}`;
 const kc = await b.newContext({ viewport: { width: 1080, height: 1350 } }); const k = await kc.newPage();
 for (const [file, opts] of [
-  ["card-example.png", { title: "Broadway Bakery", sub: "Example: how your business shows up", left: img(profile), right: img(deal) }],
+  ["card-example.png", { title: "Broadway Bakery", sub: "Example: how your business shows up", tag: "Founding businesses wanted", left: img(profile), right: img(deal) }],
   ["card-how-it-works.png", { title: "Post a deal in 2 minutes", sub: "and see every customer it brings in", left: img(post), right: img(results) }],
 ]) {
   await k.setContent(card({ ...opts, note: "Example business<br>sample data" })); await k.waitForTimeout(800);

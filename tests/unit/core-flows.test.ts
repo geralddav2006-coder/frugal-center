@@ -398,6 +398,8 @@ describe("subscriptions gate publishing", () => {
     const sub = await getSubscription(db, biz.id);
     expect(sub?.provider).toBe("founding");
     expect(isFoundingActive(sub)).toBe(true);
+    const [flag] = await db.query<{ founding_member: boolean }>("select founding_member from public.businesses where id = $1", [biz.id]);
+    expect(flag.founding_member).toBe(true);
     const daysLeft = (new Date(sub!.current_period_end!).getTime() - Date.now()) / 86400000;
     expect(daysLeft).toBeGreaterThan(FOUNDING_FREE_DAYS - 1);
     expect(daysLeft).toBeLessThanOrEqual(FOUNDING_FREE_DAYS);

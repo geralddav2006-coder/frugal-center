@@ -28,6 +28,13 @@ async function localPhoto(src, name) {
   execFileSync("curl", ["-sSfL", "-o", file, url]); // curl honors the HTTPS proxy settings
   return file;
 }
+/** 6 PM Dracut time today, or tomorrow once it's after 4 PM. */
+function pickupBy() {
+  const part = (d, o) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", ...o }).format(d);
+  const now = new Date();
+  const day = Number(part(now, { hour: "2-digit", hour12: false })) >= 16 ? new Date(now.getTime() + 86400000) : now;
+  return `${part(day, { year: "numeric", month: "2-digit", day: "2-digit" })}T18:00`;
+}
 const hide = (ctx) => ctx.addInitScript(() => {
   try { localStorage.setItem("fc-demo-banner-dismissed", "1"); } catch {}
   const s = () => { const st = document.createElement("style"); st.textContent = "nextjs-portal{display:none!important}"; (document.head || document.documentElement).appendChild(st); };
@@ -44,7 +51,7 @@ for (const biz of list) {
   const id = slug(biz.name); console.log("→", biz.name);
   const photo = await localPhoto(biz.photo, biz);
   // 1. Owner signs up and creates the business (the same steps a real owner takes).
-  const octx = await b.newContext({ viewport: { width: 1280, height: 900 } }); await hide(octx);
+  const octx = await b.newContext({ viewport: { width: 1280, height: 900 }, timezoneId: "America/New_York" }); await hide(octx);
   const o = await octx.newPage();
   await o.goto(`${B}/signup?next=/for-business/start`);
   await o.fill("input[name=fullName]", "Mockup Owner");
@@ -87,6 +94,7 @@ for (const biz of list) {
     if (d.qty && (await o.locator("#d-qty").count())) await o.fill("#d-qty", String(d.qty));
   } else {
     await o.fill("#d-orig", String(d.orig)); await o.fill("#d-price", String(d.price)); await o.fill("#d-qty", String(d.qty ?? 10));
+    await o.fill("#d-end", pickupBy()); // a normal end-of-day pickup, whatever time the mockup is made
   }
   await o.getByRole("button", { name: /Publish now/ }).click();
   await o.waitForURL(/\/dashboard\/deals\/[0-9a-f-]{36}/, { timeout: 60000 });
@@ -104,7 +112,7 @@ for (const biz of list) {
   const img = (f) => `data:image/png;base64,${fs.readFileSync(f).toString("base64")}`;
   await cctx.close();
   const cctx2 = await b.newContext({ viewport: { width: 1080, height: 1350 }, deviceScaleFactor: 1 });
-  const p2 = await cctx2.newPage(); await p2.setContent(card({ title: biz.name, sub: "on Frugal Center, in front of Dracut neighbors", left: img(profile), right: img(deal), note: "Mockup preview<br>not live yet" }));
+  const p2 = await cctx2.newPage(); await p2.setContent(card({ title: biz.name, sub: `Be one of ${biz.city || "Dracut"}'s first businesses on Frugal Center`, tag: "Founding business invite", left: img(profile), right: img(deal), note: "Mockup preview<br>not live yet" }));
   await p2.waitForTimeout(800); await p2.screenshot({ path: path.join(OUT, `${id}-card.png`) }); await cctx2.close();
   // 5. Take the mockup back down so it doesn't stay live in the demo.
   await o.getByRole("button", { name: "End", exact: true }).click();

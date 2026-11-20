@@ -316,6 +316,7 @@ export async function seedDemoData(db: Db, createUser: CreateUser) {
         ? [bid, "founding", "trialing", "75 days"]
         : [bid, "demo", b.slug === "thread-theory" ? "past_due" : "active", "24 days"],
     );
+    if (b.slug === "broadway-bakery") await db.query(`update public.businesses set founding_member = true where id = $1`, [bid]);
 
     for (const d of b.deals) {
       const kind = d.kind ?? "fixed_price";
@@ -492,7 +493,7 @@ export async function localCreateUser(db: Db): Promise<CreateUser> {
 }
 
 /** Bump when the sample data changes, so existing local demos pick it up. */
-const DEMO_SEED_MARK = "fc-demo-seed:dracut-2026-11-19";
+const DEMO_SEED_MARK = "fc-demo-seed:dracut-2026-11-20";
 
 async function markDemoSeed(db: Db) {
   await db.query(`comment on table public.businesses is '${DEMO_SEED_MARK}'`);
