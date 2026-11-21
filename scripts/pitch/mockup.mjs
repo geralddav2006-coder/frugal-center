@@ -5,7 +5,8 @@
 // Each entry: { name, category, address, zip?, description, photo? and logo? (file path or https URL),
 //   pitch? (the card's benefit line; a default is picked from the category and deal),
 //   deal: { type: "surplus" | "promotion" | "slow_hours", title, description?, orig?, price?, qty?, pct?, off?,
-//     from? and until? ("14:00"), days? (["Mon", ...]) for slow_hours: off-peak offers valid only at those times } }
+//     from? and until? ("14:00"), days? (["Mon", ...]) for slow_hours: off-peak offers valid only at those times,
+//     minutes? and times? (["10:30", "14:00"]) for appointment: canceled slots, offered tomorrow at those times } }
 import { createRequire } from "node:module"; import fs from "node:fs"; import path from "node:path"; import { execFileSync } from "node:child_process";
 const require = createRequire(import.meta.url); const { chromium } = require("playwright");
 const B = process.env.FC_URL || "http://localhost:3000";
@@ -38,6 +39,13 @@ function pickupBy() {
   const now = new Date();
   const day = Number(part(now, { hour: "2-digit", hour12: false })) >= 16 ? new Date(now.getTime() + 86400000) : now;
   return `${part(day, { year: "numeric", month: "2-digit", day: "2-digit" })}T18:00`;
+}
+/** Tomorrow's date in Dracut (Monday if tomorrow is Sunday), so open appointment times are in the future on a normal workday. */
+function tomorrow() {
+  const fmt = (o) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", ...o });
+  let d = new Date(Date.now() + 86400000);
+  if (fmt({ weekday: "short" }).format(d).startsWith("Sun")) d = new Date(d.getTime() + 86400000);
+  return fmt({ year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
 }
 const hide = (ctx) => ctx.addInitScript(() => {
   try { localStorage.setItem("fc-demo-banner-dismissed", "1"); } catch {}
@@ -95,13 +103,21 @@ for (const biz of list) {
   await o.getByRole("button", { name: "Create business" }).click();
   await o.waitForURL(/\/dashboard\/billing/, { timeout: 60000 });
   // 2. Post the deal.
-  const d = biz.deal; const type = ["promotion", "slow_hours"].includes(d.type) ? d.type : "surplus";
+  const d = biz.deal; const type = ["promotion", "slow_hours", "appointment"].includes(d.type) ? d.type : "surplus";
   await o.goto(`${B}/dashboard/deals/new?type=${type}`); await o.waitForLoadState("networkidle");
   await o.fill("#d-title", d.title);
   if (d.description) await o.fill("#d-desc", d.description);
   await o.getByLabel("Upload deal photos").setInputFiles(d.photo ? await localPhoto(d.photo, biz) : photo);
   await o.getByRole("button", { name: /Remove photo 1/ }).waitFor({ timeout: 30000 });
-  if (type !== "surplus") {
+  if (type === "appointment") {
+    await o.fill("#d-orig", String(d.orig)); await o.fill("#d-price", String(d.price));
+    if (d.minutes) await o.selectOption("#d-dur", String(d.minutes));
+    const times = d.times?.length ? d.times : ["11:00"];
+    for (let i = 0; i < times.length; i++) {
+      if (i > 0) await o.getByRole("button", { name: /Add another time/ }).click();
+      await o.fill(`#slot-${i}`, `${tomorrow()}T${times[i]}`);
+    }
+  } else if (type !== "surplus") {
     const kind = d.pct ? "percent" : d.off ? "amount_off" : "fixed_price";
     await o.selectOption("#d-kind", kind);
     if (kind === "percent") await o.fill("#d-pct", String(d.pct));
