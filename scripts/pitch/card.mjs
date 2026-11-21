@@ -12,6 +12,7 @@ html,body{margin:0;width:1080px;height:1350px;overflow:hidden;background:#191919
 .tag{margin-left:auto;display:flex;align-items:center;gap:10px;border:2px solid #2EF27A;color:#2EF27A;font-size:22px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:12px 22px;border-radius:999px}
 .tag:before{content:"";width:12px;height:12px;border-radius:50%;background:#2EF27A;box-shadow:0 0 14px #2EF27A}
 h1{position:absolute;left:70px;right:70px;top:156px;margin:0;line-height:1.2;padding-bottom:.08em;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.apo{margin:0 -.09em 0 -.05em}
 .sub{position:absolute;left:70px;right:70px;top:262px;margin:0;font-size:34px;line-height:1.2;font-weight:800;color:#2EF27A}
 .sub2{position:absolute;left:70px;right:70px;top:314px;margin:0;font-size:26px;line-height:1.25;font-weight:600;color:rgba(255,255,255,.72)}
 .phones{position:absolute;left:0;right:0;top:392px;display:flex;justify-content:center;gap:44px}
@@ -24,7 +25,7 @@ h1{position:absolute;left:70px;right:70px;top:156px;margin:0;line-height:1.2;pad
 .cta{display:block;font-size:25px;font-weight:800;color:#fff;margin-bottom:4px}
 </style></head><body><div class="glow"></div>
 <div class="top"><div class="mark">${LOGO}</div><div class="brand">Frugal Center</div>${tag ? `<div class="tag">${escape(tag)}</div>` : ""}</div>
-<h1 style="font-size:${title.length <= 16 ? 72 : title.length <= 24 ? 58 : 46}px">${escape(title)}</h1>
+<h1 style="font-size:${title.length <= 16 ? 72 : title.length <= 24 ? 58 : 46}px">${escape(title).replace(/'|&#39;|&#x27;/g, '<span class="apo">\u2019</span>')}</h1>
 <p class="sub">${escape(sub)}</p>${sub2 ? `<p class="sub2">${escape(sub2)}</p>` : ""}
 <div class="phones"><div class="ph"><img src="${left}"></div><div class="ph"><img src="${right}"></div></div>
 <div class="foot"><div class="pill">${pill}</div><div class="note">${cta ? `<span class="cta">${cta}</span>` : ""}${note}</div></div>
