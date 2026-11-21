@@ -38,7 +38,7 @@ export function pitchCopy(biz) {
   const city = biz.city || "Dracut";
   const t = (biz.deal?.title || "").toLowerCase();
   const benefit = biz.pitch
-    || (biz.category === "food-drink" && biz.deal?.type !== "promotion" ? "Sell end-of-day leftovers instead of tossing them"
+    || (biz.category === "food-drink" && (biz.deal?.type ?? "surplus") === "surplus" ? "Sell end-of-day leftovers instead of tossing them"
       : biz.category === "food-drink" ? "Fill your slow hours with customers from down the street"
       : biz.category === "services" ? "Fill canceled grooming slots with local pet owners"
       : biz.category === "activities" ? "Fill open spots in your classes with new faces"

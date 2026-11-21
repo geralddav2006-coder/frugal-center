@@ -4,7 +4,8 @@
 // Add --cards-only to rebuild just the cards from screenshots already in outDir (after a copy change).
 // Each entry: { name, category, address, zip?, description, photo? and logo? (file path or https URL),
 //   pitch? (the card's benefit line; a default is picked from the category and deal),
-//   deal: { type: "surplus" | "promotion", title, description?, orig?, price?, qty?, pct?, off? } }
+//   deal: { type: "surplus" | "promotion" | "slow_hours", title, description?, orig?, price?, qty?, pct?, off?,
+//     from? and until? ("14:00"), days? (["Mon", ...]) for slow_hours: off-peak offers valid only at those times } }
 import { createRequire } from "node:module"; import fs from "node:fs"; import path from "node:path"; import { execFileSync } from "node:child_process";
 const require = createRequire(import.meta.url); const { chromium } = require("playwright");
 const B = process.env.FC_URL || "http://localhost:3000";
@@ -94,19 +95,28 @@ for (const biz of list) {
   await o.getByRole("button", { name: "Create business" }).click();
   await o.waitForURL(/\/dashboard\/billing/, { timeout: 60000 });
   // 2. Post the deal.
-  const d = biz.deal; const type = d.type === "promotion" ? "promotion" : "surplus";
+  const d = biz.deal; const type = ["promotion", "slow_hours"].includes(d.type) ? d.type : "surplus";
   await o.goto(`${B}/dashboard/deals/new?type=${type}`); await o.waitForLoadState("networkidle");
   await o.fill("#d-title", d.title);
   if (d.description) await o.fill("#d-desc", d.description);
   await o.getByLabel("Upload deal photos").setInputFiles(d.photo ? await localPhoto(d.photo, biz) : photo);
   await o.getByRole("button", { name: /Remove photo 1/ }).waitFor({ timeout: 30000 });
-  if (type === "promotion") {
+  if (type !== "surplus") {
     const kind = d.pct ? "percent" : d.off ? "amount_off" : "fixed_price";
     await o.selectOption("#d-kind", kind);
     if (kind === "percent") await o.fill("#d-pct", String(d.pct));
     if (kind === "amount_off") await o.fill("#d-off", String(d.off));
     if (kind === "fixed_price") { await o.fill("#d-orig", String(d.orig)); await o.fill("#d-price", String(d.price)); }
-    if (d.qty && (await o.locator("#d-qty").count())) await o.fill("#d-qty", String(d.qty));
+    const qty = type === "slow_hours" ? "#d-qty2" : "#d-qty";
+    if (d.qty && (await o.locator(qty).count())) await o.fill(qty, String(d.qty));
+    if (type === "slow_hours") {
+      if (d.from) await o.fill("#d-ws", d.from);
+      if (d.until) await o.fill("#d-we", d.until);
+      if (d.days) for (const b of await o.getByRole("button", { name: /^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)$/ }).all()) {
+        const want = d.days.includes((await b.textContent()).trim()); const on = (await b.getAttribute("aria-pressed")) === "true";
+        if (want !== on) await b.click();
+      }
+    }
   } else {
     await o.fill("#d-orig", String(d.orig)); await o.fill("#d-price", String(d.price)); await o.fill("#d-qty", String(d.qty ?? 10));
     await o.fill("#d-end", pickupBy()); // a normal end-of-day pickup, whatever time the mockup is made
