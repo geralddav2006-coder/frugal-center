@@ -11,7 +11,7 @@ const archivo = Archivo({ subsets: ["latin"], axes: ["wdth"], variable: "--font-
 export const metadata: Metadata = {
   metadataBase: new URL(env.appUrl),
   title: { default: "Frugal Center — Good deals, close to home", template: "%s · Frugal Center" },
-  description: "Deals from local businesses in Dracut, MA and nearby. Free for customers.",
+  description: "Deals from local businesses near you: leftovers, last-minute openings and quiet-hour specials. Free for customers.",
   applicationName: "Frugal Center",
   openGraph: { siteName: "Frugal Center", type: "website" },
   manifest: "/manifest.webmanifest",

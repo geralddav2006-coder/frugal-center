@@ -9,6 +9,7 @@ import { run, requireSignedIn } from "@/server/action";
 import { DomainError } from "@/server/services/common";
 import { uploadImage } from "@/server/storage";
 import {
+  claimPreviewBusiness,
   createBusiness,
   deleteDraft,
   duplicateDeal,
@@ -53,16 +54,32 @@ function announce(dealId: string) {
 // ---------------------------------------------------------------------------
 // Business
 // ---------------------------------------------------------------------------
-export async function createBusinessAction(input: BusinessInput) {
+export async function createBusinessAction(input: BusinessInput, opts: { preview?: boolean } = {}) {
+  const preview = opts.preview === true;
   const res = await run(async () => {
     const viewer = requireSignedIn(await getViewer());
-    const biz = await createBusiness(await getDb(), viewer.id, input);
+    const biz = await createBusiness(await getDb(), viewer.id, input, { preview });
     await setActiveBusiness(biz.id);
     return biz;
   });
   if (res.ok) {
     revalidatePath("/", "layout");
-    redirect("/dashboard/billing?welcome=1");
+    redirect(preview ? "/dashboard?preview=1" : "/dashboard/billing?welcome=1");
+  }
+  return res;
+}
+
+/** The business owner takes over a private preview someone built for them. */
+export async function claimPreviewAction(token: string) {
+  const res = await run(async () => {
+    const viewer = requireSignedIn(await getViewer());
+    const biz = await claimPreviewBusiness(await getDb(), viewer.id, token);
+    await setActiveBusiness(biz.id);
+    return biz;
+  });
+  if (res.ok) {
+    revalidatePath("/", "layout");
+    redirect("/dashboard/deals?claimed=1");
   }
   return res;
 }

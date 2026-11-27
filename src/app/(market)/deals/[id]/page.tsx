@@ -19,24 +19,27 @@ import { MiniMap } from "@/components/mini-map";
 import { ReportDialog } from "@/components/report-dialog";
 import { Badge } from "@/components/ui/badge";
 
-type Props = { params: Promise<{ id: string }> };
+type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ p?: string }> };
 
-async function load(id: string) {
+/** `p` is a private preview's token, from its /p/<token> page. */
+async function load(id: string, p?: string) {
   const viewer = await getViewer();
   const loc = await getViewerLocation(viewer);
-  const deal = await getDealDetail(await getDb(), id, loc, viewer?.id ?? null);
+  const deal = await getDealDetail(await getDb(), id, loc, viewer?.id ?? null, p ?? null);
   return { viewer, deal };
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { deal } = await load((await params).id);
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+  const { deal } = await load((await params).id, (await searchParams).p);
   if (!deal) return { title: "Deal not found" };
+  if (deal.is_preview) return { title: `Preview for ${deal.business_name}`, robots: { index: false, follow: false } };
   const p = priceDisplay(deal);
   const description = `${p.original ? `${p.headline} instead of ${p.original}` : p.headline} at ${deal.business_name}. ${deal.description ?? ""}`.slice(0, 160);
   return { title: `${deal.title} — ${deal.business_name}`, description, openGraph: { title: deal.title, description, images: deal.images.slice(0, 1) } };
 }
 
 function claimState(d: DealDetail): { claimable: boolean; reason: string | null } {
+  if (d.is_preview) return { claimable: false, reason: "Preview only, not live yet" };
   if (d.is_live) return { claimable: true, reason: null };
   if (d.status === "draft") return { claimable: false, reason: "Draft — not published" };
   if (d.status === "paused") return { claimable: false, reason: "Paused by the business" };
@@ -46,9 +49,13 @@ function claimState(d: DealDetail): { claimable: boolean; reason: string | null 
   return { claimable: false, reason: "Sold out" };
 }
 
-export default async function DealPage({ params }: Props) {
-  const { viewer, deal: d } = await load((await params).id);
+export default async function DealPage({ params, searchParams }: Props) {
+  const previewToken = (await searchParams).p;
+  const { viewer, deal: d } = await load((await params).id, previewToken);
   if (!d) notFound();
+  const preview = d.is_preview;
+  // A preview's business page is its private /p/<token> link, not the public profile.
+  const businessHref = preview ? (previewToken ? `/p/${previewToken}` : "/dashboard") : `/business/${d.business_slug}`;
   const price = priceDisplay(d);
   const state = claimState(d);
   const meta = DEAL_TYPE_META[d.type];
@@ -75,6 +82,12 @@ export default async function DealPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-6xl md:px-6 md:pt-6 lg:px-8">
+      {preview && !d.viewer_is_member ? (
+        <div className="mx-4 mb-4 flex flex-col gap-2 rounded-2xl bg-ink p-4 text-white sm:flex-row sm:items-center md:mx-0">
+          <p className="text-[15px]"><strong className="font-extrabold">Preview made for {d.business_name}.</strong> <span className="text-white/75">Customers can&apos;t see or claim this deal yet.</span></p>
+          {previewToken ? <Link className="font-bold text-lime underline sm:ml-auto" href={`/p/${previewToken}/claim`}>Claim this page</Link> : null}
+        </div>
+      ) : null}
       {d.viewer_is_member && !d.is_live ? (
         <div className="mx-4 mb-4 flex items-center gap-2 rounded-2xl bg-[#fff4dc] p-3 text-sm font-semibold text-warning md:mx-0">
           <Info className="size-4" aria-hidden /> Preview — customers can&apos;t see this deal right now ({state.reason?.toLowerCase()}).
@@ -82,10 +95,10 @@ export default async function DealPage({ params }: Props) {
         </div>
       ) : null}
       <div className="relative">
-        <Link href="/" aria-label="Back" className="absolute top-3 left-3 z-10 grid size-10 place-items-center rounded-full bg-white/90 shadow backdrop-blur md:hidden">
+        <Link href={preview ? businessHref : "/"} aria-label="Back" className="absolute top-3 left-3 z-10 grid size-10 place-items-center rounded-full bg-white/90 shadow backdrop-blur md:hidden">
           <ChevronLeft className="size-5" />
         </Link>
-        <FavoriteButton dealId={d.id} initial={d.is_favorite} signedIn={!!viewer} className="absolute top-3 right-3 z-10 size-10 md:top-4 md:right-4" />
+        {preview ? null : <FavoriteButton dealId={d.id} initial={d.is_favorite} signedIn={!!viewer} className="absolute top-3 right-3 z-10 size-10 md:top-4 md:right-4" />}
         <Gallery images={d.images.length ? d.images : d.business_cover ? [d.business_cover] : []} alt={d.title} />
       </div>
 
@@ -98,7 +111,7 @@ export default async function DealPage({ params }: Props) {
           </div>
           <h1 className="mt-3 text-[28px] leading-tight font-extrabold sm:text-4xl">{d.title}</h1>
 
-          <Link href={`/business/${d.business_slug}`} className="mt-4 flex items-center gap-3 rounded-2xl p-1 -m-1 hover:bg-paper">
+          <Link href={businessHref} className="mt-4 flex items-center gap-3 rounded-2xl p-1 -m-1 hover:bg-paper">
             <BusinessAvatar name={d.business_name} src={d.business_logo} className="size-11" />
             <div className="min-w-0">
               <p className="truncate font-bold">{d.business_name}</p>
@@ -201,14 +214,14 @@ export default async function DealPage({ params }: Props) {
             </div>
             <div className="flex gap-2">
               <FollowButton businessId={d.business_id} businessName={d.business_name} initial={d.viewer_follows} signedIn={!!viewer} />
-              <Link href={`/business/${d.business_slug}`} className="inline-flex h-11 items-center gap-1.5 rounded-full border border-line px-4 text-[15px] font-semibold hover:bg-paper">
+              <Link href={businessHref} className="inline-flex h-11 items-center gap-1.5 rounded-full border border-line px-4 text-[15px] font-semibold hover:bg-paper">
                 <Store className="size-4" aria-hidden /> Profile
               </Link>
             </div>
           </section>
 
           <div className="mt-6 mb-4">
-            <ReportDialog dealId={d.id} signedIn={!!viewer} />
+            {preview ? null : <ReportDialog dealId={d.id} signedIn={!!viewer} />}
           </div>
         </article>
 

@@ -72,7 +72,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <span className="text-lime-ink">close to home.</span>
           </h1>
           <p className="mt-3 max-w-[36ch] text-[16px] leading-relaxed text-muted sm:mt-4 sm:max-w-xl sm:text-lg">
-            Leftover bakes, last-minute appointments and quiet-hour specials from Dracut&apos;s local spots. Free to claim, pay in store.
+            Leftover bakes, last-minute appointments and quiet-hour specials from local spots near you. Free to claim, pay in store.
           </p>
           <Suspense>
             <SearchBox size="hero" className="mt-5 max-w-2xl sm:mt-7" />
@@ -146,7 +146,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <div className="px-4 pt-8 pb-5 sm:px-6 lg:px-8">
             <EmptyState
               icon={<Store />}
-              title="Dracut's first deals are on the way"
+              title={`First deals near ${loc.label} are on the way`}
               action={
                 <div className="flex flex-wrap justify-center gap-2">
                   {signedIn ? null : <Button asChild><Link href="/signup">Create a free account</Link></Button>}
@@ -169,7 +169,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 </div>
               }
             >
-              Frugal Center is starting in Dracut, MA. Try a wider radius or pick Dracut from the location menu.
+              Frugal Center is live in Dracut and Wakefield, MA, and the towns around them. Try a wider radius or pick a town from the location menu.
             </EmptyState>
           </div>
         ) : (

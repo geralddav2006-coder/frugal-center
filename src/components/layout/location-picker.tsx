@@ -8,11 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { setLocationAction } from "@/app/actions/customer";
 import { areaLabel, cn, RADIUS_MILES } from "@/lib/utils";
+import { MARKETS, nearestMarket } from "@/lib/markets";
 
 export interface Area {
   zip: string;
   neighborhood: string;
   city: string;
+  lat: number;
+  lng: number;
 }
 
 export function LocationPicker({
@@ -104,17 +107,23 @@ export function LocationPicker({
             <Button type="submit" disabled={zip.length !== 5 || pending} className="h-12">Go</Button>
           </form>
           {error ? <p className="rounded-xl bg-[#fff4dc] p-3 text-sm font-medium text-warning" role="alert">{error}</p> : null}
-          <div>
-            <p className="mb-2 text-sm font-semibold">Dracut & nearby towns</p>
-            <div className="flex flex-wrap gap-2">
-              {areas.map((a) => (
-                <button key={a.zip} type="button" disabled={pending} onClick={() => apply({ zip: a.zip })}
-                  className="rounded-full border border-line px-3.5 py-2 text-sm font-medium hover:border-ink">
-                  {areaLabel(a)} <span className="text-muted">{a.zip}</span>
-                </button>
-              ))}
-            </div>
-          </div>
+          {MARKETS.map((m) => {
+            const group = areas.filter((a) => nearestMarket(a).name === m.name);
+            if (!group.length) return null;
+            return (
+              <div key={m.name}>
+                <p className="mb-2 text-sm font-semibold">{m.name} & nearby towns</p>
+                <div className="flex flex-wrap gap-2">
+                  {group.map((a) => (
+                    <button key={a.zip} type="button" disabled={pending} onClick={() => apply({ zip: a.zip })}
+                      className="rounded-full border border-line px-3.5 py-2 text-sm font-medium hover:border-ink">
+                      {areaLabel(a)} <span className="text-muted">{a.zip}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
           <div>
             <p className="mb-2 text-sm font-semibold">Search radius</p>
             <div className="flex gap-2" role="radiogroup" aria-label="Search radius">

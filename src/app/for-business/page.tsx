@@ -66,7 +66,7 @@ export default async function ForBusinessPage() {
               Turn empty time slots and unsold inventory into <span className="text-lime-ink">revenue.</span>
             </h1>
             <p className="mx-auto mt-4 max-w-[34ch] text-[16px] leading-relaxed text-muted sm:mx-0 sm:mt-5 sm:max-w-xl sm:text-lg">
-              Fill cancellations, sell surplus inventory, and bring Dracut neighbors through your door with local deals.
+              Fill cancellations, sell surplus inventory, and bring neighbors through your door with local deals.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row">
               <Button asChild variant="lime" size="lg" className="w-full sm:w-auto"><Link href={startHref}>{ctaLabel}</Link></Button>

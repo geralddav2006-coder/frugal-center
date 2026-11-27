@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { AlertTriangle, ExternalLink } from "lucide-react";
+import { AlertTriangle, Eye, ExternalLink } from "lucide-react";
 import { requireBusiness } from "@/server/auth";
 import { getDb } from "@/server/db";
+import { env } from "@/server/env";
 import { getSubscription, isSubscriptionActive } from "@/server/services/billing";
 import { isDemo } from "@/server/env";
 import { scheduleDueDispatch } from "@/server/sweep";
@@ -38,8 +39,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </div>
         <div className="mt-5 flex-1 overflow-y-auto"><SidebarNav role={membership.role} /></div>
         <div className="grid gap-1 border-t border-line pt-3 text-sm">
-          <Link href={`/business/${membership.slug}`} className="flex items-center gap-2 rounded-lg px-3 py-2 font-semibold text-muted hover:bg-mist hover:text-ink">
-            <ExternalLink className="size-4" aria-hidden /> View public profile
+          <Link href={membership.preview_token ? `/p/${membership.preview_token}` : `/business/${membership.slug}`} className="flex items-center gap-2 rounded-lg px-3 py-2 font-semibold text-muted hover:bg-mist hover:text-ink">
+            <ExternalLink className="size-4" aria-hidden /> {membership.preview_token ? "View private preview" : "View public profile"}
           </Link>
           <Link href="/" className="rounded-lg px-3 py-2 font-semibold text-muted hover:bg-mist hover:text-ink">← Back to Frugal Center</Link>
         </div>
@@ -51,6 +52,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <p className="min-w-0 truncate font-bold">{membership.name}</p>
           <span className="ml-auto rounded-full bg-mist px-2 py-0.5 text-xs font-semibold capitalize">{membership.role}</span>
         </header>
+        {membership.preview_token ? (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 bg-ink px-4 py-3 text-sm text-white sm:px-8">
+            <Eye className="size-4 shrink-0 text-lime" aria-hidden />
+            <span className="font-semibold">Private preview.</span>
+            <span className="text-white/75">Only people with this link can see it, and nothing can be claimed until the owner claims the page:</span>
+            <Link href={`/p/${membership.preview_token}`} className="font-bold break-all text-lime underline">
+              {`${env.appUrl.replace(/^https?:\/\//, "")}/p/${membership.preview_token}`}
+            </Link>
+          </div>
+        ) : null}
         {membership.suspended_at ? (
           <div className="flex items-center gap-2 bg-[#fde8e7] px-4 py-3 text-sm font-semibold text-danger sm:px-8">
             <AlertTriangle className="size-4 shrink-0" aria-hidden /> This business is suspended by Frugal Center. Your deals are hidden. Contact support.

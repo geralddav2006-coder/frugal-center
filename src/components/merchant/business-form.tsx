@@ -25,10 +25,13 @@ export function BusinessForm({
   mode,
   initial,
   areas,
+  preview = false,
 }: {
   mode: "onboarding" | "edit";
   initial: BusinessFormValue;
   areas: { zip: string; lat: number; lng: number; neighborhood: string }[];
+  /** Build a private preview page for a business that hasn't joined yet. */
+  preview?: boolean;
 }) {
   const router = useRouter();
   const [v, setV] = useState(initial);
@@ -51,7 +54,7 @@ export function BusinessForm({
     start(async () => {
       setError(null);
       const payload = { ...v, lat: pin?.lat ?? null, lng: pin?.lng ?? null } as unknown as Parameters<typeof createBusinessAction>[0];
-      const res = onboarding ? await createBusinessAction(payload) : await updateBusinessAction(payload);
+      const res = onboarding ? await createBusinessAction(payload, { preview }) : await updateBusinessAction(payload);
       if (res && !res.ok) {
         setError(res.error);
         toast.error(res.error);
@@ -95,7 +98,7 @@ export function BusinessForm({
             <p className="mt-1.5 text-[13px] text-muted">Drag the pin or tap the map to mark your exact entrance. Customers use this for distance and directions.</p>
           </>
         ) : (
-          <p className="rounded-xl bg-paper p-3 text-sm text-muted">Enter a ZIP code to place your business on the map. During our Dracut launch we support {areas.map((a) => `${a.neighborhood} (${a.zip})`).join(", ")}.</p>
+          <p className="rounded-xl bg-paper p-3 text-sm text-muted">Enter a ZIP code to place your business on the map. Right now we support {areas.map((a) => `${a.neighborhood} (${a.zip})`).join(", ")}.</p>
         )}
       </div>
       <div className="grid gap-5 sm:grid-cols-2">

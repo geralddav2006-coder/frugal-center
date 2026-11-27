@@ -7,7 +7,7 @@ const UUID = /^[0-9a-f-]{36}$/i;
 export async function setFollow(q: Queryable, userId: string, businessId: string, follow: boolean, source: "sign" | null = null) {
   if (!UUID.test(businessId)) throw new DomainError("invalid", "Invalid business.");
   if (follow) {
-    const [b] = await q.query(`select 1 from public.businesses where id = $1 and suspended_at is null`, [businessId]);
+    const [b] = await q.query(`select 1 from public.businesses where id = $1 and suspended_at is null and preview_token is null`, [businessId]);
     if (!b) throw new DomainError("not_found", "Business not found.");
     await q.query(
       `insert into public.follows (user_id, business_id, source) values ($1, $2, $3) on conflict do nothing`,
@@ -52,7 +52,7 @@ export async function listFollowing(q: Queryable, userId: string) {
        (select count(*)::int from public.deals d where d.business_id = b.id and d.status = 'published'
           and d.moderation_removed_at is null and d.starts_at <= now() and d.ends_at > now()) as live_deals
      from public.follows f join public.businesses b on b.id = f.business_id
-     where f.user_id = $1 and b.suspended_at is null order by f.created_at desc`,
+     where f.user_id = $1 and b.suspended_at is null and b.preview_token is null order by f.created_at desc`,
     [userId],
   );
 }
@@ -62,7 +62,7 @@ export async function listSuggestedBusinesses(q: Queryable, userId: string | nul
     `select b.id, b.name, b.slug, b.logo_url, b.cover_url, b.category_slug,
        (select count(*)::int from public.follows f where f.business_id = b.id) as followers
      from public.businesses b
-     where b.suspended_at is null
+     where b.suspended_at is null and b.preview_token is null
        and not exists (select 1 from public.follows f where f.business_id = b.id and f.user_id = $1::uuid)
      order by followers desc, b.created_at desc limit $2`,
     [userId, limit],

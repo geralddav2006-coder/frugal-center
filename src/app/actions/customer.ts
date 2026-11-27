@@ -89,7 +89,7 @@ export async function setLocationAction(input: { zip?: string; lat?: number; lng
       if (!area) {
         throw new DomainError(
           "not_launched",
-          "Frugal Center is starting in Dracut and nearby towns, and we're not in that ZIP yet. Pick a town from the list or use your current location.",
+          "Frugal Center is in Dracut, Wakefield and the towns around them, and we're not in that ZIP yet. Pick a town from the list or use your current location.",
         );
       }
       loc = { lat: area.lat, lng: area.lng, label: areaLabel(area), zip, source: "zip" };
@@ -97,7 +97,7 @@ export async function setLocationAction(input: { zip?: string; lat?: number; lng
       if (!inMarket(input.lat, input.lng)) {
         throw new DomainError(
           "not_launched",
-          "You're outside the area Frugal Center serves so far. It's starting in Dracut and nearby towns. Pick a town from the list to look around.",
+          "You're outside the area Frugal Center serves so far. It's in Dracut, Wakefield and the towns around them. Pick a town from the list to look around.",
         );
       }
       loc = { lat: input.lat, lng: input.lng, label: "Current location", zip: null, source: "gps" };

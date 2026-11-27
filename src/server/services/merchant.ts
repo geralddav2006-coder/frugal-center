@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import type { Db, Queryable } from "../db/types";
 import { slugify } from "@/lib/utils";
 import { zonedInputToDate } from "@/lib/time";
@@ -16,11 +17,13 @@ export interface Membership {
   logo_url: string | null;
   timezone: string;
   suspended_at: Date | null;
+  /** Set while the business is a private preview (see createBusiness). Only members ever see it. */
+  preview_token: string | null;
 }
 
 export async function listMemberships(q: Queryable, userId: string) {
   return q.query<Membership>(
-    `select m.business_id, m.role, b.name, b.slug, b.logo_url, b.timezone, b.suspended_at
+    `select m.business_id, m.role, b.name, b.slug, b.logo_url, b.timezone, b.suspended_at, b.preview_token
      from public.business_members m join public.businesses b on b.id = m.business_id
      where m.user_id = $1 order by m.created_at`,
     [userId],
@@ -39,14 +42,20 @@ async function resolveCoords(q: Queryable, zip: string, lat?: number | null, lng
   return area;
 }
 
-export async function createBusiness(db: Db, userId: string, raw: BusinessInput) {
+/**
+ * With `preview`, the business is a private preview built to show an owner before they join: hidden
+ * from everyone except its secret /p/<token> link, its deals can't be claimed, and the owner can claim
+ * the page (claimPreviewBusiness). One account may build any number of previews.
+ */
+export async function createBusiness(db: Db, userId: string, raw: BusinessInput, opts: { preview?: boolean } = {}) {
   const parsed = businessSchema.safeParse(raw);
   if (!parsed.success) throw new DomainError("invalid", firstIssue(parsed.error));
   const b = parsed.data;
   const existing = await listMemberships(db, userId);
-  if (existing.some((m) => m.role === "owner")) {
+  if (!opts.preview && existing.some((m) => m.role === "owner" && !m.preview_token)) {
     throw new DomainError("already_owner", "You already own a business on Frugal Center.");
   }
+  const previewToken = opts.preview ? randomBytes(24).toString("base64url").replace(/[^A-Za-z0-9]/g, "").slice(0, 20).padEnd(20, "x") : null;
   const coords = await resolveCoords(db, b.zip, b.lat, b.lng);
   return db.tx(async (q) => {
     const base = slugify(b.name) || "business";
@@ -58,15 +67,47 @@ export async function createBusiness(db: Db, userId: string, raw: BusinessInput)
     }
     const [row] = await q.query<{ id: string; slug: string }>(
       `insert into public.businesses (slug, name, category_slug, description, logo_url, cover_url, address_line, city,
-         state, zip, lat, lng, phone, website, contact_email, hours, created_by)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) returning id, slug`,
+         state, zip, lat, lng, phone, website, contact_email, hours, created_by, preview_token)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) returning id, slug`,
       [slug, b.name, b.category_slug, b.description, b.logo_url ?? null, b.cover_url ?? null, b.address_line, b.city,
-        b.state, b.zip, coords.lat, coords.lng, b.phone, b.website, b.contact_email, JSON.stringify(b.hours), userId],
+        b.state, b.zip, coords.lat, coords.lng, b.phone, b.website, b.contact_email, JSON.stringify(b.hours), userId,
+        previewToken],
     );
     await q.query(`insert into public.business_members (business_id, user_id, role) values ($1, $2, 'owner')`, [row!.id, userId]);
     await startFoundingPeriod(q, row!.id);
-    await audit(q, userId, "business.created", "business", row!.id, { name: b.name });
+    await audit(q, userId, opts.preview ? "business.preview_created" : "business.created", "business", row!.id, { name: b.name });
     return row!;
+  });
+}
+
+/**
+ * The real owner takes over a private preview: they become its only owner, the page goes public,
+ * and the example deals are paused so the owner can review them before customers can claim.
+ * Their founding free period starts now, not when the preview was built.
+ */
+export async function claimPreviewBusiness(db: Db, userId: string, token: string) {
+  if (!/^[A-Za-z0-9]{16,40}$/.test(token)) throw new DomainError("not_found", "This preview link isn't valid.");
+  const existing = await listMemberships(db, userId);
+  return db.tx(async (q) => {
+    const [biz] = await q.query<{ id: string; name: string; slug: string }>(
+      `select id, name, slug from public.businesses where preview_token = $1 and suspended_at is null for update`,
+      [token],
+    );
+    if (!biz) throw new DomainError("not_found", "This preview was already claimed or no longer exists.");
+    if (existing.some((m) => m.business_id === biz.id)) {
+      throw new DomainError("own_preview", "You built this preview. Send the link to the business owner so they can claim it.");
+    }
+    if (existing.some((m) => m.role === "owner" && !m.preview_token)) {
+      throw new DomainError("already_owner", "You already own a business on Frugal Center.");
+    }
+    await q.query(`delete from public.business_members where business_id = $1`, [biz.id]);
+    await q.query(`insert into public.business_members (business_id, user_id, role) values ($1, $2, 'owner')`, [biz.id, userId]);
+    await q.query(`update public.businesses set preview_token = null, created_by = $2, updated_at = now() where id = $1`, [biz.id, userId]);
+    await q.query(`update public.deals set status = 'paused' where business_id = $1 and status = 'published'`, [biz.id]);
+    await q.query(`delete from public.business_subscriptions where business_id = $1 and provider = 'founding'`, [biz.id]);
+    await startFoundingPeriod(q, biz.id);
+    await audit(q, userId, "business.preview_claimed", "business", biz.id, { name: biz.name });
+    return biz;
   });
 }
 

@@ -137,6 +137,7 @@ export async function dispatchNewDeal(db: Db, dealId: string): Promise<DispatchR
     `update public.deals d set followers_notified_at = now()
      from public.businesses b
      where d.id = $1 and b.id = d.business_id and d.followers_notified_at is null and ${LIVE_DEAL_SQL}
+       and b.preview_token is null
      returning d.id, d.title, d.business_id, d.discount_kind, d.original_price_cents, d.deal_price_cents,
                d.percent_off, d.amount_off_cents, b.name as business_name`,
     [dealId],
@@ -238,7 +239,7 @@ export async function dispatchNewDeal(db: Db, dealId: string): Promise<DispatchR
 export async function dispatchDueDeals(db: Db) {
   const due = await db.query<{ id: string }>(
     `select d.id from public.deals d join public.businesses b on b.id = d.business_id
-     where d.followers_notified_at is null and ${LIVE_DEAL_SQL}
+     where d.followers_notified_at is null and ${LIVE_DEAL_SQL} and b.preview_token is null
      order by d.starts_at limit 50`,
   );
   const results: DispatchResult[] = [];

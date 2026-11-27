@@ -13,19 +13,25 @@ export function DealCard({
   className,
   priority,
   size = "default",
+  href,
+  preview = false,
 }: {
   deal: Deal;
   signedIn: boolean;
   className?: string;
   priority?: boolean;
   size?: "default" | "rail";
+  /** Defaults to the deal page. */
+  href?: string;
+  /** On a private preview page: no saving. */
+  preview?: boolean;
 }) {
   const price = priceDisplay(deal);
   const distance = formatDistance(deal.distance_miles);
   const urgency = urgencyLabel(deal);
   return (
     <Link
-      href={`/deals/${deal.id}`}
+      href={href ?? `/deals/${deal.id}`}
       className={cn("group block rounded-[var(--radius-card)] outline-offset-4", size === "rail" && "w-[78vw] max-w-[300px] shrink-0 snap-start sm:w-[290px]", className)}
     >
       <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-card)] bg-mist">
@@ -40,7 +46,7 @@ export function DealCard({
         <div className="absolute top-3 right-14 left-3 flex flex-wrap gap-1.5">
           <span className="rounded-full bg-lime px-2.5 py-1 text-[12px] font-extrabold tracking-wide text-ink shadow-sm">{price.badge}</span>
         </div>
-        <FavoriteButton dealId={deal.id} initial={deal.is_favorite} signedIn={signedIn} className="absolute top-2.5 right-2.5" />
+        {preview ? null : <FavoriteButton dealId={deal.id} initial={deal.is_favorite} signedIn={signedIn} className="absolute top-2.5 right-2.5" />}
         <span className="absolute bottom-3 left-3 rounded-full bg-ink/75 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md">
           {DEAL_TYPE_META[deal.type].short}
         </span>

@@ -55,13 +55,13 @@ export async function claimDeal(
 async function claimOnce(q: Queryable, userId: string, dealId: string, slotId: string | null) {
   const [d] = await q.query(
     `select d.*, to_char(d.window_start, 'HH24:MI') as ws, to_char(d.window_end, 'HH24:MI') as we,
-            b.name as business_name, b.timezone, b.suspended_at,
+            b.name as business_name, b.timezone, b.suspended_at, (b.preview_token is not null) as is_preview,
             (d.starts_at <= now()) as started, (d.ends_at > now()) as not_ended
      from public.deals d join public.businesses b on b.id = d.business_id
      where d.id = $1 for update of d`,
     [dealId],
   );
-  if (!d || d.moderation_removed_at || d.suspended_at || d.status === "draft") {
+  if (!d || d.moderation_removed_at || d.suspended_at || d.status === "draft" || d.is_preview) {
     throw new DomainError("not_found", "This deal isn't available.");
   }
   if (d.status === "paused") throw new DomainError("paused", "This deal is paused by the business right now.");

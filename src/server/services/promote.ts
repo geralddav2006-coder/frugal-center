@@ -26,7 +26,7 @@ export async function getPromoBusiness(q: Queryable, businessId: string) {
 /** Looks up the business behind a QR code and (optionally) counts the scan. Null if unknown or suspended. */
 export async function recordPromoScan(q: Queryable, slug: string, piece: PromoPiece | "other", count: boolean) {
   const [b] = await q.query<{ id: string; slug: string }>(
-    `select id, slug from public.businesses where slug = $1 and suspended_at is null`,
+    `select id, slug from public.businesses where slug = $1 and suspended_at is null and preview_token is null`,
     [slug.toLowerCase().slice(0, 60)],
   );
   if (!b) return null;
