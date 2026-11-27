@@ -24,12 +24,13 @@ export function formatDistance(miles: number | null | undefined) {
 
 export function initials(name?: string | null) {
   if (!name) return "?";
+  // Words only, so "Rise & Shine" is "RS", not "R&".
   return name
     .split(/\s+/)
-    .filter(Boolean)
+    .filter((p) => /^[\p{L}\p{N}]/u.test(p))
     .slice(0, 2)
     .map((p) => p[0]!.toUpperCase())
-    .join("");
+    .join("") || "?";
 }
 
 /** "Maya Chen" -> "Maya C." — enough for staff to greet someone, no more. */
