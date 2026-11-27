@@ -84,7 +84,7 @@ export default async function DealPage({ params, searchParams }: Props) {
     <div className="mx-auto max-w-6xl md:px-6 md:pt-6 lg:px-8">
       {preview && !d.viewer_is_member ? (
         <div className="mx-4 mb-4 flex flex-col gap-2 rounded-2xl bg-ink p-4 text-white sm:flex-row sm:items-center md:mx-0">
-          <p className="text-[15px]"><strong className="font-extrabold">Preview made for {d.business_name}.</strong> <span className="text-white/75">Customers can&apos;t see or claim this deal yet.</span></p>
+          <p className="text-[15px]"><strong className="font-extrabold">Preview made for {d.business_name.replace(/\.$/, "")}.</strong> <span className="text-white/75">Customers can&apos;t see or claim this deal yet.</span></p>
           {previewToken ? <Link className="font-bold text-lime underline sm:ml-auto" href={`/p/${previewToken}/claim`}>Claim this page</Link> : null}
         </div>
       ) : null}

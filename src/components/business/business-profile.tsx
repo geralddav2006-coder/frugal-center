@@ -41,7 +41,8 @@ export function BusinessProfile({
   const { minutes } = zonedDayAndMinutes(new Date(), b.timezone);
   const todays = b.hours[today];
   const toMin = (s: string) => Number(s.slice(0, 2)) * 60 + Number(s.slice(3));
-  const hasHours = Object.values(b.hours ?? {}).some(Boolean);
+  // A preview's hours are placeholders until the owner claims it and sets their own.
+  const hasHours = !preview && Object.values(b.hours ?? {}).some(Boolean);
   const openNow = todays ? minutes >= toMin(todays.open) && minutes < toMin(todays.close) : false;
   const address = `${b.address_line}, ${b.city}, ${b.state} ${b.zip}`;
 
@@ -52,7 +53,7 @@ export function BusinessProfile({
           <div className="flex flex-col gap-3 rounded-2xl bg-ink p-4 text-white sm:flex-row sm:items-center">
             <Eye className="hidden size-5 shrink-0 text-lime sm:block" aria-hidden />
             <p className="text-[15px] leading-snug">
-              <strong className="font-extrabold">Preview made for {b.name}.</strong>{" "}
+              <strong className="font-extrabold">Preview made for {b.name.replace(/\.$/, "")}.</strong>{" "}
               <span className="text-white/75">This is how your page and deal would look on Frugal Center. Customers can&apos;t see it yet.</span>
             </p>
             <Button asChild variant="lime" className="shrink-0 sm:ml-auto">
