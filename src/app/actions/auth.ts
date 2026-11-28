@@ -44,6 +44,14 @@ export async function signOutAction() {
   redirect("/");
 }
 
+/** Hand this phone to a business owner: sign the current person out and open sign-up, then continue to `next`. */
+export async function handOffToOwnerAction(form: FormData) {
+  const next = safeNext(form.get("next"));
+  await signOut();
+  revalidatePath("/", "layout");
+  redirect(`/signup?next=${encodeURIComponent(next)}`);
+}
+
 export async function googleSignInAction(next: string) {
   const res = await run(async () => {
     if (!integrations.supabase || !env.googleAuthEnabled) throw new DomainError("unavailable", "Google sign-in isn't enabled.");

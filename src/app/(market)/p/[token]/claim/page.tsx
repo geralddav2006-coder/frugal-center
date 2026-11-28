@@ -7,6 +7,7 @@ import { getViewerLocation } from "@/server/location";
 import { getBusinessByPreviewToken } from "@/server/services/discovery";
 import { BusinessAvatar } from "@/components/business-avatar";
 import { ClaimPreviewButton } from "@/components/business/claim-preview-button";
+import { HandOffButton } from "@/components/business/hand-off-button";
 import { Button } from "@/components/ui/button";
 
 type Props = { params: Promise<{ token: string }> };
@@ -40,11 +41,18 @@ export default async function ClaimPreviewPage({ params }: Props) {
               <Button asChild size="lg" variant="outline"><Link href={`/login?next=${encodeURIComponent(next)}`}>I already have an account</Link></Button>
             </>
           ) : built ? (
-            <p className="rounded-xl bg-paper p-3 text-sm text-muted">
-              You built this preview. Send the owner this page&apos;s link so they can claim it from their own account.
-            </p>
+            <>
+              <p className="rounded-xl bg-paper p-3 text-sm text-muted">
+                You&apos;re signed in as the account that built this preview. Hand your phone to the owner so they can sign up and claim it.
+              </p>
+              <HandOffButton next={next} variant="lime">Sign out and let the owner sign up</HandOffButton>
+            </>
           ) : (
-            <ClaimPreviewButton token={token} name={b.name} />
+            <>
+              <p className="text-sm text-muted">Signed in as <strong className="text-ink">{viewer.email}</strong>. The page will belong to this account.</p>
+              <ClaimPreviewButton token={token} name={b.name} />
+              <HandOffButton next={next}>Not the owner? Sign out first</HandOffButton>
+            </>
           )}
           <Button asChild variant="ghost"><Link href={`/p/${token}`}>Back to the preview</Link></Button>
         </div>

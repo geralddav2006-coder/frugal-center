@@ -65,7 +65,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <Link href={`/p/${membership.preview_token}`} className="font-bold break-all text-lime underline">
               {`${env.appUrl.replace(/^https?:\/\//, "")}/p/${membership.preview_token}`}
             </Link>
-            {membership.role === "owner" ? <span className="sm:ml-auto"><ExampleToggle listed={membership.listed_as_example} /></span> : null}
+            <span className="flex flex-wrap gap-2 sm:ml-auto">
+              <Link href="/for-business/new-owner" className="rounded-full border border-white/30 px-3 py-1 text-xs font-bold hover:bg-white/10">Sign up a business on the spot</Link>
+              {membership.role === "owner" ? <ExampleToggle listed={membership.listed_as_example} /> : null}
+            </span>
           </div>
         ) : null}
         {membership.suspended_at ? (

@@ -4,7 +4,7 @@ import { integrations, isDemo } from "@/server/env";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-10 border-t sm:mt-16 border-line bg-paper pb-28 md:pb-0">
+    <footer data-site-footer className="mt-10 border-t sm:mt-16 border-line bg-paper pb-28 md:pb-0 max-md:[body:has([data-claim-bar])_&]:pb-[calc(9.5rem+env(safe-area-inset-bottom))] md:max-lg:[body:has([data-claim-bar])_&]:pb-[calc(6rem+env(safe-area-inset-bottom))]">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.5fr_1fr_1fr] lg:px-8">
         <div>
           <Logo />

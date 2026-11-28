@@ -28,6 +28,7 @@ export function ClaimPanel({
   priceOriginal,
   savingsLabel,
   compact,
+  demoHref,
 }: {
   dealId: string;
   isAppointment: boolean;
@@ -42,6 +43,8 @@ export function ClaimPanel({
   priceOriginal: string | null;
   savingsLabel: string | null;
   compact?: boolean;
+  /** On an owner's private preview: claiming opens a demo voucher instead (nothing is really claimed). */
+  demoHref?: string;
 }) {
   const available = slots.filter((s) => !s.past && s.left > 0);
   const [slotId, setSlotId] = useState<string | null>(available[0]?.id ?? null);
@@ -49,6 +52,13 @@ export function ClaimPanel({
   const [pending, start] = useTransition();
 
   const cta = (() => {
+    if (demoHref) {
+      return (
+        <Button asChild size="lg" variant="lime" className="w-full">
+          <Link href={isAppointment && slotId ? `${demoHref}?slot=${slotId}` : demoHref}>Claim Deal (demo)</Link>
+        </Button>
+      );
+    }
     if (activeClaimId) {
       return (
         <Button asChild size="lg" variant="default" className="w-full">
@@ -107,7 +117,7 @@ export function ClaimPanel({
           {slots.length === 0 ? <p className="text-sm text-muted">No times listed.</p> : null}
           <div className="grid grid-cols-2 gap-2">
             {slots.map((s) => {
-              const disabled = s.past || s.left <= 0 || !state.claimable;
+              const disabled = s.past || s.left <= 0 || (!state.claimable && !demoHref);
               return (
                 <label
                   key={s.id}

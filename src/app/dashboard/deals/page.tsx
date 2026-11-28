@@ -22,9 +22,9 @@ const FILTERS = [
   { key: "past", label: "Past" },
 ];
 
-export default async function DealsPage({ searchParams }: { searchParams: Promise<{ f?: string }> }) {
+export default async function DealsPage({ searchParams }: { searchParams: Promise<{ f?: string; claimed?: string }> }) {
   const { membership } = await requireBusiness();
-  const { f = "all" } = await searchParams;
+  const { f = "all", claimed } = await searchParams;
   const all = await listMerchantDeals(await getDb(), membership.business_id);
   const deals = all.filter((d) =>
     f === "all" ? true : f === "past" ? ["ended", "sold_out", "removed"].includes(d.state) : d.state === f,
@@ -37,6 +37,15 @@ export default async function DealsPage({ searchParams }: { searchParams: Promis
         <h1 className="text-3xl font-extrabold">My Deals</h1>
         {canCreate ? <Button asChild variant="lime"><Link href="/dashboard/deals/new"><PlusCircle /> Create Deal</Link></Button> : null}
       </div>
+      {claimed ? (
+        <div className="mt-4 rounded-2xl bg-lime p-4">
+          <p className="font-extrabold">{membership.name} is yours. Welcome to Frugal Center!</p>
+          <p className="mt-1 text-[15px]">
+            Your example deal is paused, so customers can&apos;t see it yet. Tap it below, check the price and times, and tap
+            Resume to go live. Or create a new deal. Your first 3 months are free.
+          </p>
+        </div>
+      ) : null}
       <LiveNowPanel deals={live} timezone={membership.timezone} canCreate={canCreate} />
 
       <nav className="no-scrollbar -mx-4 mt-5 flex gap-2 overflow-x-auto px-4" aria-label="Filter deals">

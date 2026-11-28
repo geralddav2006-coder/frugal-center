@@ -73,6 +73,8 @@ export default async function DealPage({ params, searchParams }: Props) {
     activeClaimId: d.viewer_active_claim_id,
     signedIn: !!viewer,
     isMember: d.viewer_is_member,
+    // The owner's private preview link: show them what claiming looks like, without a real claim.
+    demoHref: preview && previewToken ? `/p/${previewToken}/demo/${d.id}` : undefined,
     priceHeadline: price.headline,
     priceOriginal: price.original,
     savingsLabel,
@@ -237,7 +239,8 @@ export default async function DealPage({ params, searchParams }: Props) {
       </div>
 
       {/* Mobile sticky claim bar */}
-      <div className="fixed inset-x-0 bottom-[68px] z-30 border-t border-line bg-white/95 px-4 py-3 backdrop-blur-lg md:bottom-0 lg:hidden">
+      {/* Sits right on top of the tab bar, which is 67.5px plus the iPhone home-bar area. */}
+      <div data-claim-bar className="fixed inset-x-0 bottom-[calc(67px+env(safe-area-inset-bottom))] z-30 border-t border-line bg-white/95 px-4 py-3 backdrop-blur-lg md:bottom-0 md:pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden">
         <div className="mx-auto flex max-w-xl items-center gap-4">
           <div className="min-w-0">
             <p className="flex items-baseline gap-1.5">
