@@ -20,6 +20,7 @@ import {
   removeTeamMember,
   revokeInvite,
   saveDeal,
+  setExampleListed,
   updateBusiness,
 } from "@/server/services/merchant";
 import type { BusinessInput, DealInput } from "@/server/services/schemas";
@@ -67,6 +68,16 @@ export async function createBusinessAction(input: BusinessInput, opts: { preview
     redirect(preview ? "/dashboard?preview=1" : "/dashboard/billing?welcome=1");
   }
   return res;
+}
+
+/** Show or hide the active preview publicly as a labeled example. */
+export async function setExampleListedAction(listed: boolean) {
+  return run(async () => {
+    const { viewer, db, businessId } = await ctx(["owner"]);
+    await setExampleListed(db, viewer.id, businessId, listed === true);
+    revalidatePath("/", "layout");
+    return {};
+  });
 }
 
 /** The business owner takes over a private preview someone built for them. */

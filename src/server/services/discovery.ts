@@ -39,6 +39,8 @@ export interface DealCard {
   next_slot_at: Date | null;
   slots_remaining: number | null;
   is_favorite: boolean;
+  /** From a business that hasn't joined yet (a preview, or a public example): shown labeled, never claimable. */
+  is_example: boolean;
 }
 
 export type SortKey = "nearest" | "ending" | "newest" | "discount";
@@ -60,7 +62,10 @@ export interface DealQuery {
 }
 
 /** SQL predicate for a business anyone can see: not a private preview. Requires alias b. */
-export const PUBLIC_BUSINESS_SQL = `b.preview_token is null`;
+export const PUBLIC_BUSINESS_SQL = `(b.preview_token is null or b.listed_as_example)`;
+
+/** SQL predicate for a business that has really joined (no previews or examples). Requires alias b. */
+export const JOINED_BUSINESS_SQL = `b.preview_token is null`;
 
 /** SQL predicate for a deal that can be claimed right now. Requires aliases d (deals) and b (businesses). */
 export const LIVE_DEAL_SQL = `
@@ -78,6 +83,7 @@ const CARD_COLUMNS = `
   to_char(d.window_start, 'HH24:MI') as window_start, to_char(d.window_end, 'HH24:MI') as window_end,
   b.id as business_id, b.name as business_name, b.slug as business_slug, b.logo_url as business_logo,
   b.cover_url as business_cover, b.category_slug, b.lat, b.lng, b.timezone,
+  (b.preview_token is not null) as is_example,
   s.next_slot_at, s.slots_remaining`;
 
 const SLOTS_LATERAL = `
@@ -223,13 +229,13 @@ export async function getDealDetail(
   previewToken?: string | null,
 ): Promise<DealDetail | null> {
   if (!/^[0-9a-f-]{36}$/i.test(dealId)) return null;
-  const [row] = await db.query<DealDetail & { preview_match: boolean }>(
+  const [row] = await db.query<DealDetail & { preview_match: boolean; listed_as_example: boolean }>(
     `select ${CARD_COLUMNS},
        d.description, d.redemption_instructions, d.restrictions, d.per_customer_limit, d.moderation_removed_at,
        b.description as business_description, b.address_line, b.city, b.state, b.zip, b.phone, b.website,
        (b.suspended_at is not null) as business_suspended,
        (b.preview_token is not null) as is_preview,
-       coalesce(b.preview_token = $5::text, false) as preview_match,
+       coalesce(b.preview_token = $5::text, false) as preview_match, b.listed_as_example,
        public.distance_miles($2, $3, b.lat, b.lng) as distance_miles,
        exists (select 1 from public.favorites f where f.deal_id = d.id and f.user_id = $4::uuid) as is_favorite,
        (${LIVE_DEAL_SQL}) as is_live,
@@ -244,16 +250,16 @@ export async function getDealDetail(
     [dealId, loc.lat, loc.lng, viewerId, previewToken ?? null],
   );
   if (!row) return null;
-  const { preview_match: previewMatch, ...deal } = row;
+  const { preview_match: previewMatch, listed_as_example: listedAsExample, ...deal } = row;
   // Public visibility: published/ended deals of non-suspended businesses that were not removed.
   // A private preview's deals are visible only through its secret link.
   const publicVisible =
     (deal.status === "published" || deal.status === "ended") && !deal.moderation_removed_at && !deal.business_suspended &&
-    (!deal.is_preview || previewMatch);
+    (!deal.is_preview || previewMatch || listedAsExample);
   if (!publicVisible && !deal.viewer_is_member) return null;
   if (deal.is_preview) {
-    deal.is_live = false; // a preview can be looked at but never claimed
-    deal.distance_miles = 0; // shown as the owner sees it in their shop
+    deal.is_live = false; // a preview or example can be looked at but never claimed
+    if (previewMatch) deal.distance_miles = 0; // from the private link: shown as the owner sees it in their shop
   }
   deal.slots = await db.query<Slot>(
     `select id, starts_at, capacity, claimed_count from public.appointment_slots
@@ -295,10 +301,13 @@ export interface PublicBusiness {
   viewer_follows: boolean;
   viewer_notify: boolean;
   created_at: Date;
+  /** Hasn't joined yet: a private preview, or a preview listed publicly as an example. */
+  is_example: boolean;
 }
 
 const BUSINESS_COLUMNS = `b.id, b.slug, b.name, b.category_slug, b.description, b.logo_url, b.cover_url, b.address_line,
        b.city, b.state, b.zip, b.lat, b.lng, b.phone, b.website, b.contact_email, b.timezone, b.hours, b.created_at,
+       (b.preview_token is not null) as is_example,
        (select count(*)::int from public.follows f where f.business_id = b.id) as follower_count,
        public.distance_miles($2, $3, b.lat, b.lng) as distance_miles,
        exists (select 1 from public.follows f where f.business_id = b.id and f.user_id = $4::uuid) as viewer_follows,
@@ -347,7 +356,7 @@ export async function nearbyStats(db: Queryable, loc: GeoPoint, radiusMiles: num
          when d.discount_kind = 'fixed_price' then round((d.original_price_cents - d.deal_price_cents)::numeric / d.original_price_cents * 100)
          when d.discount_kind = 'percent' then d.percent_off end), 0)::int as max_pct
      from public.deals d join public.businesses b on b.id = d.business_id
-     where ${LIVE_DEAL_SQL} and ${PUBLIC_BUSINESS_SQL}
+     where ${LIVE_DEAL_SQL} and ${JOINED_BUSINESS_SQL}
        and public.distance_miles($1, $2, b.lat, b.lng) <= $3
        and ($4::text is null or b.category_slug = $4)`,
     [loc.lat, loc.lng, radiusMiles, category ?? null],

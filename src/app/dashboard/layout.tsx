@@ -10,6 +10,7 @@ import { Logo, LogoMark } from "@/components/brand";
 import { BusinessAvatar } from "@/components/business-avatar";
 import { MobileDashboardNav, SidebarNav } from "@/components/merchant/dashboard-nav";
 import { BusinessSwitcher } from "@/components/merchant/business-switcher";
+import { ExampleToggle } from "@/components/merchant/example-toggle";
 
 export const metadata = { title: { default: "Dashboard", template: "%s · Frugal Center for Business" }, robots: { index: false } };
 
@@ -55,11 +56,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
         {membership.preview_token ? (
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 bg-ink px-4 py-3 text-sm text-white sm:px-8">
             <Eye className="size-4 shrink-0 text-lime" aria-hidden />
-            <span className="font-semibold">Private preview.</span>
-            <span className="text-white/75">Only people with this link can see it, and nothing can be claimed until the owner claims the page:</span>
+            <span className="font-semibold">{membership.listed_as_example ? "Preview, listed publicly as an example." : "Private preview."}</span>
+            <span className="text-white/75">
+              {membership.listed_as_example
+                ? "Everyone can see it, labeled as an example, and nothing can be claimed. The owner claims it from this link:"
+                : "Only people with this link can see it, and nothing can be claimed until the owner claims the page:"}
+            </span>
             <Link href={`/p/${membership.preview_token}`} className="font-bold break-all text-lime underline">
               {`${env.appUrl.replace(/^https?:\/\//, "")}/p/${membership.preview_token}`}
             </Link>
+            {membership.role === "owner" ? <span className="sm:ml-auto"><ExampleToggle listed={membership.listed_as_example} /></span> : null}
           </div>
         ) : null}
         {membership.suspended_at ? (

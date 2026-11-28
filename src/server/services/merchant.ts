@@ -19,11 +19,13 @@ export interface Membership {
   suspended_at: Date | null;
   /** Set while the business is a private preview (see createBusiness). Only members ever see it. */
   preview_token: string | null;
+  /** A preview also shown publicly, labeled as an example (see setExampleListed). */
+  listed_as_example: boolean;
 }
 
 export async function listMemberships(q: Queryable, userId: string) {
   return q.query<Membership>(
-    `select m.business_id, m.role, b.name, b.slug, b.logo_url, b.timezone, b.suspended_at, b.preview_token
+    `select m.business_id, m.role, b.name, b.slug, b.logo_url, b.timezone, b.suspended_at, b.preview_token, b.listed_as_example
      from public.business_members m join public.businesses b on b.id = m.business_id
      where m.user_id = $1 order by m.created_at`,
     [userId],
@@ -81,6 +83,21 @@ export async function createBusiness(db: Db, userId: string, raw: BusinessInput,
 }
 
 /**
+ * Shows (or hides) a preview publicly as a labeled example: in search, the feed and the map, marked
+ * "Example", with deals that still can't be claimed. Only for previews, by their builder.
+ */
+export async function setExampleListed(db: Db, userId: string, businessId: string, listed: boolean) {
+  await requireMember(db, userId, businessId, ["owner"]);
+  const [b] = await db.query<{ id: string }>(
+    `update public.businesses set listed_as_example = $2, updated_at = now()
+     where id = $1 and preview_token is not null returning id`,
+    [businessId, listed],
+  );
+  if (!b) throw new DomainError("invalid", "Only preview pages can be listed as examples.");
+  await audit(db, userId, listed ? "business.example_listed" : "business.example_hidden", "business", businessId);
+}
+
+/**
  * The real owner takes over a private preview: they become its only owner, the page goes public,
  * and the example deals are paused so the owner can review them before customers can claim.
  * Their founding free period starts now, not when the preview was built.
@@ -102,7 +119,10 @@ export async function claimPreviewBusiness(db: Db, userId: string, token: string
     }
     await q.query(`delete from public.business_members where business_id = $1`, [biz.id]);
     await q.query(`insert into public.business_members (business_id, user_id, role) values ($1, $2, 'owner')`, [biz.id, userId]);
-    await q.query(`update public.businesses set preview_token = null, created_by = $2, updated_at = now() where id = $1`, [biz.id, userId]);
+    await q.query(
+      `update public.businesses set preview_token = null, listed_as_example = false, created_by = $2, updated_at = now() where id = $1`,
+      [biz.id, userId],
+    );
     await q.query(`update public.deals set status = 'paused' where business_id = $1 and status = 'published'`, [biz.id]);
     await q.query(`delete from public.business_subscriptions where business_id = $1 and provider = 'founding'`, [biz.id]);
     await startFoundingPeriod(q, biz.id);

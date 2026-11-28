@@ -25,6 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${b.name} — deals in ${b.city}`,
     description: (b.description ?? `${categoryName(b.category_slug)} in ${b.city}`).slice(0, 160),
     openGraph: { images: b.cover_url ? [b.cover_url] : [] },
+    ...(b.is_example ? { robots: { index: false, follow: false } } : {}),
   };
 }
 

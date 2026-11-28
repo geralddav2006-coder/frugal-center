@@ -45,8 +45,9 @@ export function DealCard({
         />
         <div className="absolute top-3 right-14 left-3 flex flex-wrap gap-1.5">
           <span className="rounded-full bg-lime px-2.5 py-1 text-[12px] font-extrabold tracking-wide text-ink shadow-sm">{price.badge}</span>
+          {deal.is_example && !preview ? <span className="rounded-full bg-white px-2.5 py-1 text-[12px] font-extrabold tracking-wide text-ink shadow-sm">Example</span> : null}
         </div>
-        {preview ? null : <FavoriteButton dealId={deal.id} initial={deal.is_favorite} signedIn={signedIn} className="absolute top-2.5 right-2.5" />}
+        {preview || deal.is_example ? null : <FavoriteButton dealId={deal.id} initial={deal.is_favorite} signedIn={signedIn} className="absolute top-2.5 right-2.5" />}
         <span className="absolute bottom-3 left-3 rounded-full bg-ink/75 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md">
           {DEAL_TYPE_META[deal.type].short}
         </span>

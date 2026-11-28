@@ -39,7 +39,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 }
 
 function claimState(d: DealDetail): { claimable: boolean; reason: string | null } {
-  if (d.is_preview) return { claimable: false, reason: "Preview only, not live yet" };
+  if (d.is_preview) return { claimable: false, reason: "Example only, can't be claimed" };
   if (d.is_live) return { claimable: true, reason: null };
   if (d.status === "draft") return { claimable: false, reason: "Draft — not published" };
   if (d.status === "paused") return { claimable: false, reason: "Paused by the business" };
@@ -55,7 +55,7 @@ export default async function DealPage({ params, searchParams }: Props) {
   if (!d) notFound();
   const preview = d.is_preview;
   // A preview's business page is its private /p/<token> link, not the public profile.
-  const businessHref = preview ? (previewToken ? `/p/${previewToken}` : "/dashboard") : `/business/${d.business_slug}`;
+  const businessHref = preview && previewToken ? `/p/${previewToken}` : `/business/${d.business_slug}`;
   const price = priceDisplay(d);
   const state = claimState(d);
   const meta = DEAL_TYPE_META[d.type];
@@ -84,7 +84,11 @@ export default async function DealPage({ params, searchParams }: Props) {
     <div className="mx-auto max-w-6xl md:px-6 md:pt-6 lg:px-8">
       {preview && !d.viewer_is_member ? (
         <div className="mx-4 mb-4 flex flex-col gap-2 rounded-2xl bg-ink p-4 text-white sm:flex-row sm:items-center md:mx-0">
-          <p className="text-[15px]"><strong className="font-extrabold">Preview made for {d.business_name.replace(/\.$/, "")}.</strong> <span className="text-white/75">Customers can&apos;t see or claim this deal yet.</span></p>
+          {previewToken ? (
+            <p className="text-[15px]"><strong className="font-extrabold">Preview made for {d.business_name.replace(/\.$/, "")}.</strong> <span className="text-white/75">Customers can&apos;t claim this deal yet.</span></p>
+          ) : (
+            <p className="text-[15px]"><strong className="font-extrabold">Example deal.</strong> <span className="text-white/75">{d.business_name.replace(/\.$/, "")} isn&apos;t on Frugal Center yet. This shows what their deals could look like, and it can&apos;t be claimed.</span></p>
+          )}
           {previewToken ? <Link className="font-bold text-lime underline sm:ml-auto" href={`/p/${previewToken}/claim`}>Claim this page</Link> : null}
         </div>
       ) : null}

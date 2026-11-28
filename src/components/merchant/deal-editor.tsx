@@ -392,7 +392,7 @@ function previewDeal(v: EditorValue, businessName: string, cover: string | null,
     starts_at: safeDate(v.starts_at), ends_at: v.type === "slow_hours" ? new Date(Date.now() + 30 * 86400000) : safeDate(v.ends_at), published_at: new Date(),
     duration_minutes: Number(v.duration_minutes) || 60, recurring_days: v.recurring_days, window_start: v.window_start, window_end: v.window_end,
     business_id: "preview", business_name: businessName, business_slug: "", business_logo: null, business_cover: cover, category_slug: "food-drink",
-    lat: 0, lng: 0, timezone, distance_miles: 0.6, next_slot_at: slot, slots_remaining: v.slots.reduce((n, s) => n + (Number(s.capacity) || 0), 0), is_favorite: false,
+    lat: 0, lng: 0, timezone, distance_miles: 0.6, next_slot_at: slot, slots_remaining: v.slots.reduce((n, s) => n + (Number(s.capacity) || 0), 0), is_favorite: false, is_example: false,
   };
   return { card, badge };
 }

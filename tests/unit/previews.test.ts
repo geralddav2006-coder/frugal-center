@@ -5,7 +5,7 @@ import {
   getBusinessByPreviewToken, getBusinessBySlug, getDealDetail, listLiveDeals, nearbyStats,
 } from "@/server/services/discovery";
 import { claimDeal } from "@/server/services/claims";
-import { claimPreviewBusiness, createBusiness, listMemberships, publishDeal, saveDeal } from "@/server/services/merchant";
+import { claimPreviewBusiness, createBusiness, listMemberships, publishDeal, saveDeal, setExampleListed } from "@/server/services/merchant";
 import { getSubscription } from "@/server/services/billing";
 import { setFollow } from "@/server/services/engagement";
 import { DomainError } from "@/server/services/common";
@@ -93,6 +93,21 @@ describe("private previews", () => {
     }), "already_owner");
   });
 
+  it("can be listed publicly as labeled examples that still can't be claimed or followed", async () => {
+    await expectCode(setExampleListed(db, customer, bizId, true), "forbidden");
+    await setExampleListed(db, builder, bizId, true);
+    const page = await getBusinessBySlug(db, slug, WAKEFIELD, customer);
+    expect(page?.business.is_example).toBe(true);
+    const nearby = await listLiveDeals(db, WAKEFIELD, { radiusMiles: 25 }, customer);
+    expect(nearby.find((d) => d.id === dealId)?.is_example).toBe(true);
+    expect((await nearbyStats(db, WAKEFIELD, 3)).count).toBe(0); // examples aren't counted as live deals
+    const deal = await getDealDetail(db, dealId, WAKEFIELD, customer);
+    expect(deal?.is_live).toBe(false);
+    expect(deal).not.toHaveProperty("listed_as_example");
+    await expectCode(claimDeal(db, customer, dealId, null), "not_found");
+    await expectCode(setFollow(db, customer, bizId, true), "not_found");
+  });
+
   it("hand the page to the real owner, who reviews the paused deal before going live", async () => {
     await expectCode(claimPreviewBusiness(db, builder, token), "own_preview");
     const owner = await createUser(db, "realowner@test.dev", "Real Owner");
@@ -105,6 +120,7 @@ describe("private previews", () => {
 
     const pub = await getBusinessBySlug(db, slug, WAKEFIELD, customer);
     expect(pub?.business.name).toBe("Wakefield Test Bakery");
+    expect(pub?.business.is_example).toBe(false);
     const [d] = await db.query<{ status: string }>(`select status from public.deals where id = $1`, [dealId]);
     expect(d?.status).toBe("paused");
     expect(await getBusinessByPreviewToken(db, token, WAKEFIELD, customer)).toBeNull();

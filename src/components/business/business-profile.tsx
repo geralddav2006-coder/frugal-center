@@ -37,12 +37,15 @@ export function BusinessProfile({
   previewToken?: string;
 }) {
   const preview = !!previewToken;
+  // Not joined yet: a private preview (with its link) or a public example listing.
+  const example = !preview && b.is_example;
+  const notJoined = preview || example;
   const today = DAY_KEYS[zonedDayAndMinutes(new Date(), b.timezone).dow]!;
   const { minutes } = zonedDayAndMinutes(new Date(), b.timezone);
   const todays = b.hours[today];
   const toMin = (s: string) => Number(s.slice(0, 2)) * 60 + Number(s.slice(3));
   // A preview's hours are placeholders until the owner claims it and sets their own.
-  const hasHours = !preview && Object.values(b.hours ?? {}).some(Boolean);
+  const hasHours = !notJoined && Object.values(b.hours ?? {}).some(Boolean);
   const openNow = todays ? minutes >= toMin(todays.open) && minutes < toMin(todays.close) : false;
   const address = `${b.address_line}, ${b.city}, ${b.state} ${b.zip}`;
 
@@ -61,6 +64,13 @@ export function BusinessProfile({
             </Button>
           </div>
         </div>
+      ) : example ? (
+        <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-line bg-paper p-4 text-[15px] leading-snug">
+            <strong className="font-extrabold">Example listing.</strong>{" "}
+            <span className="text-muted">{b.name.replace(/\.$/, "")} isn&apos;t on Frugal Center yet. This shows what their deals could look like, and none of them can be claimed.</span>
+          </div>
+        </div>
       ) : null}
       <div className={`relative ${fromSign ? "h-32" : "h-52"} bg-mist sm:h-72 lg:mx-auto lg:mt-6 lg:h-80 lg:max-w-6xl lg:overflow-hidden lg:rounded-[24px]`}>
         <SmartImage src={b.cover_url} alt={`${b.name} storefront`} priority sizes="100vw" fallbackLabel={b.name} />
@@ -76,10 +86,10 @@ export function BusinessProfile({
               <Badge variant="soft" size="sm">{categoryName(b.category_slug)}</Badge>
               <span className="flex items-center gap-1"><MapPin className="size-3.5" aria-hidden /> {b.city}{formatDistance(b.distance_miles) ? ` · ${formatDistance(b.distance_miles)}` : ""}</span>
               <span className="flex items-center gap-1"><Users className="size-3.5" aria-hidden /> {pluralize(b.follower_count, "follower")}</span>
-              {preview && !hasHours ? null : <span className={openNow ? "font-semibold text-lime-ink" : ""}>{openNow ? "Open now" : "Closed now"}</span>}
+              {notJoined && !hasHours ? null : <span className={openNow ? "font-semibold text-lime-ink" : ""}>{openNow ? "Open now" : "Closed now"}</span>}
             </div>
           </div>
-          {preview || (fromSign && !b.viewer_follows) ? null : (
+          {notJoined || (fromSign && !b.viewer_follows) ? null : (
             <FollowButton businessId={b.id} businessName={b.name} initial={b.viewer_follows} signedIn={signedIn} size="default" className="sm:mb-1" />
           )}
         </div>
@@ -102,8 +112,8 @@ export function BusinessProfile({
               </div>
             ) : (
               <EmptyState className="mt-4" icon={<Clock />} title="No deals right now">
-                {preview
-                  ? "Deals you post show up here."
+                {notJoined
+                  ? "No example deals right now."
                   : b.viewer_follows
                     ? `You're following ${b.name}. We'll let you know the moment they post a deal.`
                     : `Follow ${b.name} and we'll notify you when they post a new deal.`}
@@ -112,7 +122,7 @@ export function BusinessProfile({
           </section>
 
           <aside className="grid content-start gap-5">
-            {preview && !hasHours ? null : (
+            {notJoined && !hasHours ? null : (
               <div className="rounded-[var(--radius-card)] border border-line p-5">
                 <h2 className="font-extrabold">Hours</h2>
                 <dl className="mt-3 grid gap-1.5 text-[15px]">
@@ -141,7 +151,7 @@ export function BusinessProfile({
                 {b.contact_email ? <a className="flex items-center gap-2 truncate hover:underline" href={`mailto:${b.contact_email}`}><Mail className="size-4 shrink-0" aria-hidden />{b.contact_email}</a> : null}
               </div>
             </div>
-            {preview ? null : <ReportDialog businessId={b.id} signedIn={signedIn} />}
+            {notJoined ? null : <ReportDialog businessId={b.id} signedIn={signedIn} />}
           </aside>
         </div>
       </div>
