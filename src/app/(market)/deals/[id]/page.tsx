@@ -39,7 +39,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 }
 
 function claimState(d: DealDetail): { claimable: boolean; reason: string | null } {
-  if (d.is_preview) return { claimable: false, reason: "Example only, can't be claimed" };
+  if (d.is_preview) return { claimable: false, reason: "Example only" };
   if (d.is_live) return { claimable: true, reason: null };
   if (d.status === "draft") return { claimable: false, reason: "Draft — not published" };
   if (d.status === "paused") return { claimable: false, reason: "Paused by the business" };
