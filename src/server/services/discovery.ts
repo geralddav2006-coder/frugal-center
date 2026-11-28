@@ -59,6 +59,8 @@ export interface DealQuery {
   limit?: number;
   /** Show only this private preview business's deals (from its secret /p/<token> link). */
   previewToken?: string;
+  /** Deals in these categories come first (the visitor's picks), then the usual order. */
+  preferCategories?: string[];
 }
 
 /** SQL predicate for a business anyone can see: not a private preview. Requires alias b. */
@@ -151,7 +153,7 @@ export async function listLiveDeals(
      join public.businesses b on b.id = d.business_id
      ${SLOTS_LATERAL}
      where ${where.join(" and ")}
-     order by ${order[query.sort ?? "nearest"]}
+     order by ${query.preferCategories?.length ? `(b.category_slug = any(${p(query.preferCategories)}::text[])) desc, ` : ""}${order[query.sort ?? "nearest"]}
      limit ${limit}`,
     params,
   );
@@ -170,8 +172,9 @@ export async function getHomeSections(
   loc: GeoPoint & { radiusMiles: number },
   viewerId: string | null,
   category?: string,
+  preferCategories: string[] = [],
 ): Promise<HomeSections> {
-  const base = { radiusMiles: loc.radiusMiles, category, limit: 12 };
+  const base = { radiusMiles: loc.radiusMiles, category, limit: 12, preferCategories: category ? [] : preferCategories };
   const [nearYou, endingSoon, lastMinute, follows] = await Promise.all([
     listLiveDeals(db, loc, { ...base, sort: "nearest" }, viewerId),
     listLiveDeals(db, loc, { ...base, sort: "ending", endingWithinHours: 24 }, viewerId),

@@ -25,6 +25,7 @@ import { RADIUS_OPTIONS, inMarket, writeLocationCookie } from "@/server/location
 import { areaLabel } from "@/lib/utils";
 import { env } from "@/server/env";
 import { SIGN_COOKIE } from "@/lib/promo";
+import { INTEREST_COOKIE, WELCOMED_COOKIE, parseInterests } from "@/lib/interests";
 
 export async function toggleFavoriteAction(dealId: string, save: boolean) {
   return run(async () => {
@@ -187,4 +188,30 @@ export async function removePushSubscriptionAction(endpoint: string) {
     revalidatePath("/profile");
     return {};
   });
+}
+
+const YEAR = 60 * 60 * 24 * 365;
+
+/** First-visit welcome card: remember what the visitor is into (no account needed) and stop showing the card. */
+export async function saveInterestsAction(interests: string[]) {
+  const picks = parseInterests((Array.isArray(interests) ? interests : []).join(","));
+  const jar = await cookies();
+  jar.set(INTEREST_COOKIE, picks.join(","), { httpOnly: true, sameSite: "lax", path: "/", maxAge: YEAR });
+  jar.set(WELCOMED_COOKIE, "1", { httpOnly: true, sameSite: "lax", path: "/", maxAge: YEAR });
+  revalidatePath("/");
+  return { ok: true as const, count: picks.length };
+}
+
+/** Close the welcome card without picking anything. */
+export async function dismissWelcomeAction() {
+  (await cookies()).set(WELCOMED_COOKIE, "1", { httpOnly: true, sameSite: "lax", path: "/", maxAge: YEAR });
+  revalidatePath("/");
+  return { ok: true as const };
+}
+
+/** "Change" next to the visitor's picks: show the welcome card again. */
+export async function reopenWelcomeAction() {
+  (await cookies()).delete(WELCOMED_COOKIE);
+  revalidatePath("/");
+  return { ok: true as const };
 }

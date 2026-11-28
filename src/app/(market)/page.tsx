@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { cookies } from "next/headers";
 import { Bell, CalendarClock, Check, Clock, Heart, Map, MapPin, Store } from "lucide-react";
 import { getViewer } from "@/server/auth";
 import { getDb } from "@/server/db";
 import { getViewerLocation } from "@/server/location";
-import { getHomeSections, nearbyStats, type DealCard as Deal } from "@/server/services/discovery";
+import { getHomeSections, listLaunchAreas, nearbyStats, type DealCard as Deal } from "@/server/services/discovery";
 import { scheduleDueDispatch } from "@/server/sweep";
 import { CATEGORIES, priceDisplay } from "@/lib/deals";
 import { formatDistance } from "@/lib/utils";
@@ -17,6 +18,8 @@ import { SearchBox } from "@/components/layout/search-box";
 import { EmptyState } from "@/components/empty-state";
 import { FlashToast } from "@/components/welcome-toast";
 import { Button } from "@/components/ui/button";
+import { PicksLine, WelcomeCard } from "@/components/home/welcome-card";
+import { INTEREST_COOKIE, WELCOMED_COOKIE, parseInterests } from "@/lib/interests";
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
@@ -24,9 +27,14 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const viewer = await getViewer();
   const loc = await getViewerLocation(viewer);
   const db = await getDb();
-  const [s, stats] = await Promise.all([
-    getHomeSections(db, { lat: loc.lat, lng: loc.lng, radiusMiles: loc.radius }, viewer?.id ?? null, category),
+  // First-visit welcome card: what they're into floats to the top of every list (no account needed).
+  const jar = await cookies();
+  const picks = parseInterests(jar.get(INTEREST_COOKIE)?.value);
+  const welcomed = jar.get(WELCOMED_COOKIE)?.value === "1";
+  const [s, stats, areas] = await Promise.all([
+    getHomeSections(db, { lat: loc.lat, lng: loc.lng, radiusMiles: loc.radius }, viewer?.id ?? null, category, picks),
     nearbyStats(db, loc, loc.radius, category),
+    welcomed ? Promise.resolve([]) : listLaunchAreas(db),
   ]);
   scheduleDueDispatch();
   const livePicks = (s.endingSoon.length >= 3 ? s.endingSoon : s.nearYou).slice(0, 3);
@@ -74,20 +82,25 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <p className="mt-3 max-w-[36ch] text-[16px] leading-relaxed text-muted sm:mt-4 sm:max-w-xl sm:text-lg">
             Leftover bakes, last-minute appointments and quiet-hour specials from local spots near you. Free to claim, pay in store.
           </p>
+          {!welcomed ? (
+            <WelcomeCard label={loc.label} radius={loc.radius} areas={areas} initialPicks={picks} className="mt-5 max-w-2xl sm:mt-7" />
+          ) : null}
           <Suspense>
             <SearchBox size="hero" className="mt-5 max-w-2xl sm:mt-7" />
           </Suspense>
           {/* Phones: three equal tiles in one row, so it never wraps 2 + 1. Larger screens: one inline row. */}
-          <ul className="mt-4 grid max-w-2xl grid-cols-3 gap-2 text-[12.5px] leading-tight font-semibold text-ink/75 sm:flex sm:flex-wrap sm:gap-x-4 sm:gap-y-1.5 sm:text-[13px]" aria-label="Why Frugal Center">
-            {["Free to claim", stats.maxPct >= 10 ? `Up to ${stats.maxPct}% off` : "Local discounts", "Pay in store"].map((t) => (
-              <li key={t} className="flex flex-col items-center gap-1 rounded-2xl border border-line bg-white px-1 py-2.5 text-center text-balance sm:flex-row sm:gap-1.5 sm:border-0 sm:bg-transparent sm:p-0 sm:text-left">
-                <span className="grid size-5 place-items-center rounded-full bg-lime-soft sm:contents">
-                  <Check className="size-3.5 text-lime-ink sm:size-4" strokeWidth={2.75} aria-hidden />
-                </span>
-                {t}
-              </li>
-            ))}
-          </ul>
+          {welcomed ? (
+            <ul className="mt-4 grid max-w-2xl grid-cols-3 gap-2 text-[12.5px] leading-tight font-semibold text-ink/75 sm:flex sm:flex-wrap sm:gap-x-4 sm:gap-y-1.5 sm:text-[13px]" aria-label="Why Frugal Center">
+              {["Free to claim", stats.maxPct >= 10 ? `Up to ${stats.maxPct}% off` : "Local discounts", "Pay in store"].map((t) => (
+                <li key={t} className="flex flex-col items-center gap-1 rounded-2xl border border-line bg-white px-1 py-2.5 text-center text-balance sm:flex-row sm:gap-1.5 sm:border-0 sm:bg-transparent sm:p-0 sm:text-left">
+                  <span className="grid size-5 place-items-center rounded-full bg-lime-soft sm:contents">
+                    <Check className="size-3.5 text-lime-ink sm:size-4" strokeWidth={2.75} aria-hidden />
+                  </span>
+                  {t}
+                </li>
+              ))}
+            </ul>
+          ) : null}
           </div>
           {livePicks.length ? (
             <aside className="hidden rounded-[26px] border border-line bg-white p-5 shadow-[var(--shadow-soft)] lg:block" aria-label="Live right now">
@@ -135,12 +148,16 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       </section>
 
       <div className="mx-auto max-w-7xl pt-2">
-        <Link
-          href={explore({ view: "map" })}
-          className="fixed bottom-[calc(84px+env(safe-area-inset-bottom))] left-1/2 z-30 inline-flex h-11 -translate-x-1/2 items-center gap-2 rounded-full bg-ink px-5 text-[15px] font-bold text-white shadow-[var(--shadow-lift)] active:scale-95 sm:hidden"
-        >
-          <Map className="size-4 text-lime" aria-hidden /> Map
-        </Link>
+        {welcomed && !category ? <PicksLine picks={picks} /> : null}
+        {/* Hidden while the welcome card is up, so it doesn't cover the card's buttons on phones. */}
+        {welcomed ? (
+          <Link
+            href={explore({ view: "map" })}
+            className="fixed bottom-[calc(84px+env(safe-area-inset-bottom))] left-1/2 z-30 inline-flex h-11 -translate-x-1/2 items-center gap-2 rounded-full bg-ink px-5 text-[15px] font-bold text-white shadow-[var(--shadow-lift)] active:scale-95 sm:hidden"
+          >
+            <Map className="size-4 text-lime" aria-hidden /> Map
+          </Link>
+        ) : null}
 
         {launching ? (
           <div className="px-4 pt-8 pb-5 sm:px-6 lg:px-8">
